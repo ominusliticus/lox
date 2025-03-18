@@ -7,7 +7,9 @@
 
 
 enum class ErrorType {
-    FILE_NOT_FOUND
+    FILE_NOT_FOUND,
+    UNREACHABLE,
+    INVALID_COMMAND
 };
 
 template<class OStream>
@@ -19,6 +21,12 @@ operator<<(
     switch (error_type) {
         case ErrorType::FILE_NOT_FOUND:
             ostream << "File not found";
+            break;
+        case ErrorType::UNREACHABLE:
+            ostream << "Line unreachable";
+            break;
+        case ErrorType::INVALID_COMMAND:
+            ostream << "Invalid command";
             break;
     }
     return ostream;
