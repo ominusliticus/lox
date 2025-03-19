@@ -12,13 +12,15 @@
 #include "internals/scanner.hpp"
 #include "internals/token.hpp"
 
+// TODO: Profile the number of string copies, where can we use std::string_view?
+
 // Reads and lexes file
 auto 
 run(
-    std::istream&& buf
+    std::string source
 ) -> ErrorOr<void> {
-    lox::Scanner scanner(std::move(buf));
-    std::vector<lox::Token> tokens{ std::move(scanner.scan_tokens()) };
+    Scanner scanner(source);
+    std::vector<Token> tokens{ TRY(scanner.scan_tokens()) };
     for (auto const& token : tokens) 
         print(token);
     return {};
@@ -32,8 +34,11 @@ run_file(
     std::filesystem::path file_path{file_name};
     if (std::filesystem::exists(file_path)) {
         std::fstream file_stream{ file_path };
-        std::istream buf{ file_stream.rdbuf() };
-        return run(std::move(buf));
+        auto size{ file_stream.tellg() }; 
+        file_stream.seekg(0);
+        std::string source(size, '\0');
+        file_stream.read(&source[0], size);
+        return run(source);
     } else {
         return ErrorType::FILE_NOT_FOUND;
     }
@@ -49,9 +54,8 @@ run_prompt(
         printf("ilox> ");
         if (!std::getline(std::cin, line) && !std::cin.eof()) return ErrorType::INVALID_COMMAND;
         else if (line == "exit()" || std::cin.eof()) break;
-        std::stringstream buf{ std::move(line) };
         // A hack to keep REPL from crashing due to user error
-        auto _ = [=](){ TRY(run(std::move(buf))); };
+        auto _ = [=]() -> ErrorOr<void> { TRY(run(line)); return {}; };
     }
     return {};
 }

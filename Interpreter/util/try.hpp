@@ -2,7 +2,9 @@
 
 #include <stdio.h>
 
-#include "print.hpp"
+#include "util/error.hpp"
+#include "util/print.hpp"
+
 
 // TODO: Add error message to error message, once me move to fmtlib
 // TODO: Add try clause for REPL: shouldn't fail if user makes a mistake
@@ -26,3 +28,14 @@
         }                                                                                         \
         std::move(expression.release());                                                          \
     })
+
+#define TRY_LOX(result, line, column)                                                             \
+    ({                                                                                            \
+        auto expression{ result };                                                                \
+        if (expression.is_error()) {                                                              \
+            error(line, column, expression.error());                                              \
+            return 69;                                                                            \
+        }                                                                                         \
+        std::move(expression.release());                                                          \
+    })
+

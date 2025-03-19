@@ -1,8 +1,7 @@
 #pragma once
 
 #include <string_view>
-
-namespace lox {
+#include <string>
 
 enum class TokenType {
     // Single-character tokens
@@ -46,140 +45,76 @@ enum class TokenType {
     TRUE,
     VAR, 
     WHILE,
-    EOF
+    ENDOFFILE
 };
 
 struct Token {
-    TokenType   type;
-    std::string lexeme;
-    std::string literal;
-    int         line;
-    int         column;
+    Token(
+        TokenType        type_,
+        std::string_view lexeme_,
+        std::string_view literal_,
+        int              line_,
+        int              column_
+    ) 
+        : type{ type_ }
+        , lexeme{ lexeme_ }
+        , literal{ literal_ }
+        , line{ line_ }
+        , column{ column_ }
+    {}
+
+    TokenType        type;
+    std::string_view lexeme;
+    std::string_view literal;
+    int              line;
+    int              column;
 };
 
-}
-
-template<class OStream
+template<class OStream>
 auto
 operator<<(
     OStream& ostream,
-    lox::TokenType type
+    TokenType type
 ) -> OStream& {
     switch (type) {
-        case lox::TokenType::LEFT_PAREN:
-            ostream << "(";
-            break;
-        case lox::TokenType::RIGHT_PAREN:
-            ostream << ")";
-            break;
-        case lox::TokenType::LEFT_BRACE:
-            ostream << "{";
-            break;
-        case lox::TokenType::RIGHT_BRACE:
-            ostream << "}";
-            break;
-        case lox::TokenType::COMMA:
-            ostream << ",";
-            break;
-        case lox::TokenType::DOT:
-            ostream << ".";
-            break;
-        case lox::TokenType::MINUS:
-            ostream << "-";
-            break;
-        case lox::TokenType::PLUS:
-            ostream << "+";
-            break;
-        case lox::TokenType::SEMICOLON:
-            ostream << ";";
-            break;
-        case lox::TokenType::SLASH: 
-            ostream << "/";
-            break;
-        case lox::TokenType::STAR:
-            ostream << "*";
-            break;
-        case lox::TokenType::BANG:
-            ostream << "!";
-            break;
-        case lox::TokenType::BANG_EQUAL:
-            ostream << "!=";
-            break;
-        case lox::TokenType::EQUAL:
-            ostream << "=";
-            break;
-        case lox::TokenType::EQUAL_EQUAL:
-            ostream << "==";
-            break;
-        case lox::TokenType::GREATER:
-            ostream << "<";
-            break;
-        case lox::TokenType::GREATER_EQUAL:
-            ostream << "<=";
-            break;
-        case lox::TokenType::LESS:
-            ostream << ">";
-            break;
-        case lox::TokenType::LESS_EQUALS:
-            ostream << ">=";
-            break;
-        case lox::TokenType::IDENTIFIER:
-            ostream << "ident";
-            break;
-        case lox::TokenType::STRING:
-            ostream << "string";
-            break;
-        case lox::TokenType::NUMBER:
-            ostream << "number";
-            break;
-        case lox::TokenType::AND:
-            ostream << "&&";
-            break;
-        case lox::TokenType::CLASS:
-            ostream << "class";
-            break;
-        case lox::TokenType::ELSE:
-            ostream << "else";
-            break;
-        case lox::TokenType::FALSE:
-            ostream << "false";
-            break;
-        case lox::TokenType::FUNC:
-            ostream << "func";
-            break;
-        case lox::TokenType::FOR: 
-            ostream << "for";
-            break;
-        case lox::TokenType::IF:
-            ostream << "if";
-            break;
-        case lox::TokenType::NIL:
-            ostream << "NIL";
-            break;
-        case lox::TokenType::OR:
-            ostream << "||";
-            break;
-        case lox::TokenType::PRINT:
-            ostream << "print";
-            break;
-        case lox::TokenType::RETURN:
-            ostream << "return";
-            break;
-        case lox::TokenType::THIS:
-            ostream << "this";
-            break;
-        case lox::TokenType::TRUE:
-            ostream << "true";
-            break;
-        case lox::TokenType::VAR: 
-            ostream << "var";
-            break;
-        case lox::TokenType::WHILE:
-            ostream << "while";
-            break;
-        case lox::TokenType::EOF
-            ostream << "EOF";
-            break;
+        case TokenType::LEFT_PAREN:    ostream << "("; break;
+        case TokenType::RIGHT_PAREN:   ostream << ")"; break;
+        case TokenType::LEFT_BRACE:    ostream << "{"; break;
+        case TokenType::RIGHT_BRACE:   ostream << "}"; break;
+        case TokenType::COMMA:         ostream << ","; break;
+        case TokenType::DOT:           ostream << "."; break;
+        case TokenType::MINUS:         ostream << "-"; break;
+        case TokenType::PLUS:          ostream << "+"; break;
+        case TokenType::SEMICOLON:     ostream << ";"; break;
+        case TokenType::SLASH:         ostream << "/"; break;
+        case TokenType::STAR:          ostream << "*"; break;
+        case TokenType::BANG:          ostream << "!"; break;
+        case TokenType::BANG_EQUAL:    ostream << "!="; break;
+        case TokenType::EQUAL:         ostream << "="; break;
+        case TokenType::EQUAL_EQUAL:   ostream << "=="; break;
+        case TokenType::GREATER:       ostream << "<"; break;
+        case TokenType::GREATER_EQUAL: ostream << "<="; break;
+        case TokenType::LESS:          ostream << ">"; break;
+        case TokenType::LESS_EQUALS:   ostream << ">="; break;
+        case TokenType::IDENTIFIER:    ostream << "ident"; break;
+        case TokenType::STRING:        ostream << "string"; break;
+        case TokenType::NUMBER:        ostream << "number"; break;
+        case TokenType::AND:           ostream << "&&"; break;
+        case TokenType::CLASS:         ostream << "class"; break;
+        case TokenType::ELSE:          ostream << "else"; break;
+        case TokenType::FALSE:         ostream << "false"; break;
+        case TokenType::FUNC:          ostream << "func"; break;
+        case TokenType::FOR:           ostream << "for"; break;
+        case TokenType::IF:            ostream << "if"; break;
+        case TokenType::NIL:           ostream << "NIL"; break;
+        case TokenType::OR:            ostream << "||"; break;
+        case TokenType::PRINT:         ostream << "print"; break;
+        case TokenType::RETURN:        ostream << "return"; break;
+        case TokenType::THIS:          ostream << "this"; break;
+        case TokenType::TRUE:          ostream << "true"; break;
+        case TokenType::VAR:           ostream << "var"; break;
+        case TokenType::WHILE:         ostream << "while"; break;
+        case TokenType::ENDOFFILE:     ostream << "EOF"; break;
     }
     return ostream;
 }
@@ -188,7 +123,7 @@ template<class OStream>
 auto
 operator<<(
     OStream& ostream,
-    lox::Token const& token
+    Token const& token
 ) -> OStream& {
     ostream << token.type << " " << token.lexeme << " " << token.literal << "\n";
     return ostream;

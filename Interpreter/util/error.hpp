@@ -1,15 +1,15 @@
 # pragma once
 
 #include <concepts>
-#include <pthread.h>
-
-#include "print.hpp"
-
+#include <iostream>
+#include <string_view>
+#include <utility>
 
 enum class ErrorType {
     FILE_NOT_FOUND,
     UNREACHABLE,
-    INVALID_COMMAND
+    INVALID_COMMAND,
+    INVALID_SYMBOL
 };
 
 template<class OStream>
@@ -27,6 +27,9 @@ operator<<(
             break;
         case ErrorType::INVALID_COMMAND:
             ostream << "Invalid command";
+            break;
+        case ErrorType::INVALID_SYMBOL:
+            ostream << "Invalid symbol";
             break;
     }
     return ostream;
@@ -198,3 +201,31 @@ private:
     ErrorType m_error;
     Empty     m_value;
 };
+
+
+// TODO: Add file to error reporting
+inline auto
+error(
+    int       line,
+    int       column,
+    ErrorType error_type
+) -> void {
+    std::cout << "\033[31m" << "[Error]" << " "
+              << line << ":" 
+              << column << " "
+              << error_type <<  "\033[0m" << std::endl;
+}
+
+inline auto
+error(
+    std::string_view file,
+    int              line,
+    int              column,
+    ErrorType        error_type
+) -> void {
+    std::cout << "\033[31m" << "[Error]" << " "
+              << file << ":"
+              << line << ":" 
+              << column << " "
+              << error_type <<  "\033[0m" << std::endl;
+}

@@ -5,6 +5,4 @@ CompileFlags:
     - '-Wpedantic' 
     - '-Wextra' 
     - '--std=c++20' 
-    - '-I ./' 
     - '-Wno-gnu-statement-expression'
-
