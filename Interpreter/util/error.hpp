@@ -9,7 +9,8 @@ enum class ErrorType {
     FILE_NOT_FOUND,
     UNREACHABLE,
     INVALID_COMMAND,
-    INVALID_SYMBOL
+    INVALID_SYMBOL,
+    UNTERMINATED_STRING
 };
 
 template<class OStream>
@@ -30,6 +31,9 @@ operator<<(
             break;
         case ErrorType::INVALID_SYMBOL:
             ostream << "Invalid symbol";
+            break;
+        case ErrorType::UNTERMINATED_STRING:
+            ostream << "Unterminated string";
             break;
     }
     return ostream;

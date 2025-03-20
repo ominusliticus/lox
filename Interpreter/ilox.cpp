@@ -34,9 +34,10 @@ run_file(
     std::filesystem::path file_path{file_name};
     if (std::filesystem::exists(file_path)) {
         std::fstream file_stream{ file_path };
-        auto size{ file_stream.tellg() }; 
+        auto size{ std::filesystem::file_size(file_path) }; 
         file_stream.seekg(0);
         std::string source(size, '\0');
+        print(size, source);
         file_stream.read(&source[0], size);
         return run(source);
     } else {
@@ -55,7 +56,7 @@ run_prompt(
         if (!std::getline(std::cin, line) && !std::cin.eof()) return ErrorType::INVALID_COMMAND;
         else if (line == "exit()" || std::cin.eof()) break;
         // A hack to keep REPL from crashing due to user error
-        auto _ = [=]() -> ErrorOr<void> { TRY(run(line)); return {}; };
+        [[maybe_unused]] auto _ = [=]() -> ErrorOr<void> { TRY(run(line)); return {}; }();
     }
     return {};
 }

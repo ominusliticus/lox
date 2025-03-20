@@ -34,13 +34,14 @@ enum class TokenType {
     CLASS,
     ELSE,
     FALSE,
-    FUNC,
+    FUN,
     FOR, 
     IF,
     NIL,
     OR,
     PRINT,
     RETURN,
+    SUPER,
     THIS,
     TRUE,
     VAR, 
@@ -50,11 +51,11 @@ enum class TokenType {
 
 struct Token {
     Token(
-        TokenType        type_,
-        std::string_view lexeme_,
-        std::string_view literal_,
-        int              line_,
-        int              column_
+        TokenType   type_,
+        std::string lexeme_,
+        std::string literal_,
+        int         line_,
+        int         column_
     ) 
         : type{ type_ }
         , lexeme{ lexeme_ }
@@ -63,11 +64,11 @@ struct Token {
         , column{ column_ }
     {}
 
-    TokenType        type;
-    std::string_view lexeme;
-    std::string_view literal;
-    int              line;
-    int              column;
+    TokenType   type;
+    std::string lexeme;
+    std::string literal;
+    int         line;
+    int         column;
 };
 
 template<class OStream>
@@ -103,13 +104,14 @@ operator<<(
         case TokenType::CLASS:         ostream << "class"; break;
         case TokenType::ELSE:          ostream << "else"; break;
         case TokenType::FALSE:         ostream << "false"; break;
-        case TokenType::FUNC:          ostream << "func"; break;
+        case TokenType::FUN:           ostream << "func"; break;
         case TokenType::FOR:           ostream << "for"; break;
         case TokenType::IF:            ostream << "if"; break;
         case TokenType::NIL:           ostream << "NIL"; break;
         case TokenType::OR:            ostream << "||"; break;
         case TokenType::PRINT:         ostream << "print"; break;
         case TokenType::RETURN:        ostream << "return"; break;
+        case TokenType::SUPER:         ostream << "super"; break;
         case TokenType::THIS:          ostream << "this"; break;
         case TokenType::TRUE:          ostream << "true"; break;
         case TokenType::VAR:           ostream << "var"; break;
@@ -125,6 +127,8 @@ operator<<(
     OStream& ostream,
     Token const& token
 ) -> OStream& {
-    ostream << token.type << " " << token.lexeme << " " << token.literal << "\n";
+    ostream << "token.type " << token.type << " " 
+            << "token.lexem " << token.lexeme << " " 
+            << "token.literal " << token.literal;
     return ostream;
 }
