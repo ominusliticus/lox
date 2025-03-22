@@ -14,7 +14,6 @@
 
 class Scanner {
 public:
-    static constexpr std::string_view nil{ "" };
     Scanner() = default;
     Scanner(std::string source) 
         : m_source{ source }
@@ -31,7 +30,7 @@ public:
         m_tokens.emplace_back(
             TokenType::ENDOFFILE,
             "",
-            nil.data(),
+            Token::nil,
             m_line,
             0
         );
@@ -87,7 +86,7 @@ public:
     add_token(
         TokenType type
     ) -> void {
-        add_token(type, nil.data());
+        add_token(type, Token::nil);
     }
 
     auto

@@ -69,6 +69,8 @@ struct Token {
     std::string literal;
     int         line;
     int         column;
+
+    static constexpr char const* nil{ "" };
 };
 
 template<class OStream>
@@ -127,8 +129,8 @@ operator<<(
     OStream& ostream,
     Token const& token
 ) -> OStream& {
-    ostream << "token.type " << token.type << " " 
-            << "token.lexem " << token.lexeme << " " 
-            << "token.literal " << token.literal;
+    ostream << token.type << " " 
+            << token.lexeme << " " 
+            << token.literal;
     return ostream;
 }
