@@ -10,7 +10,8 @@ enum class ErrorType {
     UNREACHABLE,
     INVALID_COMMAND,
     INVALID_SYMBOL,
-    UNTERMINATED_STRING
+    UNTERMINATED_STRING,
+    CLOSING_PAREN
 };
 
 template<class OStream>
@@ -34,6 +35,9 @@ operator<<(
             break;
         case ErrorType::UNTERMINATED_STRING:
             ostream << "Unterminated string";
+            break;
+        case ErrorType::CLOSING_PAREN:
+            ostream << "Expected ')' after expression";
             break;
     }
     return ostream;
@@ -120,7 +124,7 @@ public:
 private:
     bool      m_is_error;
     ErrorType m_error;
-    T&&       m_value;
+    T         m_value;
 };
 
 struct Empty {};

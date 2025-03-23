@@ -29,12 +29,12 @@
         std::move(expression.release());                                                          \
     })
 
-#define TRY_LOX(result, line, column)                                                             \
+#define TRY_LOX(result, token)                                                                    \
     ({                                                                                            \
         auto expression{ result };                                                                \
         if (expression.is_error()) {                                                              \
-            error(line, column, expression.error());                                              \
-            return 69;                                                                            \
+            error(token->line, token->column, expression.error());                                \
+            return expression.error();                                                            \
         }                                                                                         \
         std::move(expression.release());                                                          \
     })

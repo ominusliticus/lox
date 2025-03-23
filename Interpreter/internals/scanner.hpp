@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "internals/nil.hpp"
+#include "internals/object.hpp"
 #include "internals/token.hpp"
 
 #include "util/error.hpp"
@@ -30,7 +32,7 @@ public:
         m_tokens.emplace_back(
             TokenType::ENDOFFILE,
             "",
-            Token::nil,
+            Object(),
             m_line,
             0
         );
@@ -86,13 +88,13 @@ public:
     add_token(
         TokenType type
     ) -> void {
-        add_token(type, Token::nil);
+        add_token(type, Object());
     }
 
     auto
     add_token(
-        TokenType        type,
-        std::string literal
+        TokenType   type,
+        Object      literal
     ) -> void {
         m_tokens.emplace_back(
             type,
@@ -181,7 +183,7 @@ public:
         }
         add_token(
             TokenType::NUMBER,
-            m_source.substr(m_start, m_current - m_start)
+            Object{ std::stod(m_source.substr(m_start, m_current - m_start)) }
         );
     }
 
@@ -201,7 +203,7 @@ public:
         advance();
         add_token(
             TokenType::STRING,
-            m_source.substr(m_start + 1, (m_current - m_start) - 2)
+            Object{ m_source.substr(m_start + 1, (m_current - m_start) - 2) }
         );
     }
 

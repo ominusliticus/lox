@@ -6,13 +6,16 @@
 #include <string>
 #include <vector>
 
+#include "internals/ast.hpp"
+#include "internals/nil.hpp"
+#include "internals/object.hpp"
+#include "internals/parse.hpp"
+#include "internals/scanner.hpp"
+#include "internals/token.hpp"
+
 #include "util/error.hpp"
 #include "util/print.hpp"
 #include "util/try.hpp"
-
-#include "internals/ast.hpp"
-#include "internals/scanner.hpp"
-#include "internals/token.hpp"
 
 // TODO: Profile the number of string copies, where can we use std::string_view?
 
@@ -65,28 +68,9 @@ run_prompt(
 
 auto
 main(
-    [[maybe_unused]] int argc,
+    [[maybe_unused]] int    argc,
     [[maybe_unused]] char **argv
 ) -> int {
-    Binary expr(
-        std::make_shared<Unary>(
-            std::make_shared<Token>(TokenType::MINUS, "-", Token::nil, 1, 1),
-            std::make_shared<Literal>(
-                std::make_shared<Token>(TokenType::NUMBER, "123", Token::nil, 1, 1)
-            )
-        ),
-        std::make_shared<Token>(TokenType::STAR, "*", Token::nil, 1, 1),
-        std::make_shared<Grouping>(
-            std::make_shared<Literal>(
-                std::make_shared<Token>(TokenType::NUMBER, "45.67", Token::nil, 1, 1)
-            )
-        )
-    );
-    ExpressionVisitor visitor;
-    std::stringstream ss;
-    visitor.printer(ss, expr);
-    print(ss.str());
-
     if (argc > 2) {
         print("Usage: ilox [script]");
         exit(69);

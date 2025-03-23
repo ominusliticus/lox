@@ -3,6 +3,8 @@
 #include <string_view>
 #include <string>
 
+#include "internals/object.hpp"
+
 enum class TokenType {
     // Single-character tokens
     LEFT_PAREN,
@@ -53,7 +55,7 @@ struct Token {
     Token(
         TokenType   type_,
         std::string lexeme_,
-        std::string literal_,
+        Object      literal_,
         int         line_,
         int         column_
     ) 
@@ -66,17 +68,15 @@ struct Token {
 
     TokenType   type;
     std::string lexeme;
-    std::string literal;
+    Object      literal;
     int         line;
     int         column;
-
-    static constexpr char const* nil{ "" };
 };
 
 template<class OStream>
 auto
 operator<<(
-    OStream& ostream,
+    OStream&  ostream,
     TokenType type
 ) -> OStream& {
     switch (type) {
