@@ -24,10 +24,14 @@ auto
 run(
     std::string source
 ) -> ErrorOr<void> {
-    Scanner scanner(source);
+    Scanner            scanner(source);
     std::vector<Token> tokens{ TRY(scanner.scan_tokens()) };
-    for (auto const& token : tokens) 
-        print(token);
+    Parser             parser(tokens);
+    auto               expression{ TRY(parser.parse()) };
+    ExpressionVisitor  visitor;
+    std::stringstream  ss;
+    visitor.printer(ss, expression);
+    print(ss.str());
     return {};
 }
 
@@ -42,7 +46,6 @@ run_file(
         auto size{ std::filesystem::file_size(file_path) }; 
         file_stream.seekg(0);
         std::string source(size, '\0');
-        print(size, source);
         file_stream.read(&source[0], size);
         return run(source);
     } else {

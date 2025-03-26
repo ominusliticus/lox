@@ -117,4 +117,11 @@ struct ExpressionVisitor {
                 break;
         }
     }
+
+    auto 
+    interpret(
+        void
+    ) -> void {
+        return ;
+    }
 };

@@ -60,7 +60,12 @@ public:
             case '>': add_token(match('=') ? TokenType::GREATER_EQUAL : TokenType::GREATER); break;
             case '/': 
                 if (match('/')) // Matching single-line comments
-                    while(peek() != '\n' && not_end()) advance();
+                    while (peek() != '\n' && not_end()) advance();
+                else if (match('*'))
+                    while (!(peek() == '*' && peek_next() == '/') && not_end()) {
+                        if (peek() == '\n') ++m_line;
+                        advance();
+                    }
                 else
                  add_token(TokenType::SLASH);
                 break;

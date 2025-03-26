@@ -12,8 +12,13 @@
 #include "util/try.hpp"
 
 
+// TODO: Add support for ternary operations
+// TODO: Add automatic detection of failed righ expression for binary operations
+
+
 // Implementing the following grammar:
-// expression  -> equality;
+// expression  -> equality | block;
+// block       -> expression "," expression;
 // equality    -> comparison (( "!=" | "==" ) comparison )* ;
 // comparison  -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 // term        -> factor ( ( "-"| "+" ) factor )* ;
@@ -31,6 +36,7 @@
 // ?           if statement
 
 class Parser {
+public:
     Parser() = default;
 
     Parser(
@@ -40,9 +46,24 @@ class Parser {
     {}
 
     auto
+    parse(
+    ) -> ErrorOr<std::shared_ptr<Expression>> {
+        return get_expression();
+    }
+
+private:
+    auto
     get_expression(
     ) -> ErrorOr<std::shared_ptr<Expression>> {
-        return equality();
+        std::shared_ptr<Expression> left_expression{ TRY_LOX(equality(), previous()) };
+        while (match(TokenType::COMMA)) {
+            std::shared_ptr<Token> operation{ previous() };
+            std::shared_ptr<Expression> right_expression{ TRY_LOX(equality(), previous()) };
+            left_expression = std::static_pointer_cast<Expression>(std::make_shared<Binary>(
+                left_expression, operation, right_expression
+            ));
+        }
+        return left_expression;
     }
 
     auto
@@ -120,7 +141,6 @@ class Parser {
     auto
     primary(
     ) -> ErrorOr<std::shared_ptr<Expression>> {
-        print("Current token", previous().get());
         if (match(TokenType::FALSE)) 
             return std::static_pointer_cast<Expression>(std::make_shared<Literal>(Object(false)));
         if (match(TokenType::TRUE))
@@ -137,7 +157,7 @@ class Parser {
             TRY_LOX(consume(TokenType::RIGHT_PAREN, ErrorType::CLOSING_PAREN), previous());
             return std::static_pointer_cast<Expression>(std::make_shared<Grouping>(expr));
         }
-        return ErrorType::UNREACHABLE;
+        return ErrorType::EXPECTED_EXPRESSION;
     }
 
     auto 

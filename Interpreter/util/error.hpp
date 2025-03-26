@@ -11,7 +11,8 @@ enum class ErrorType {
     INVALID_COMMAND,
     INVALID_SYMBOL,
     UNTERMINATED_STRING,
-    CLOSING_PAREN
+    CLOSING_PAREN,
+    EXPECTED_EXPRESSION
 };
 
 template<class OStream>
@@ -38,6 +39,9 @@ operator<<(
             break;
         case ErrorType::CLOSING_PAREN:
             ostream << "Expected ')' after expression";
+            break;
+        case ErrorType::EXPECTED_EXPRESSION:
+            ostream << "Expected expression";
             break;
     }
     return ostream;
