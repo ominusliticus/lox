@@ -3,6 +3,7 @@
 #include <concepts>
 #include <iostream>
 #include <string_view>
+#include <type_traits>
 #include <utility>
 
 enum class ErrorType {
@@ -12,7 +13,12 @@ enum class ErrorType {
     INVALID_SYMBOL,
     UNTERMINATED_STRING,
     CLOSING_PAREN,
-    EXPECTED_EXPRESSION
+    EXPECTED_EXPRESSION,
+    IMPROPER_UNARY_NEGATION,
+    UNMATCHED_BINARY_OP_TYPES,
+    UNIMPLEMENTED,
+    DIV_BY_ZERO,
+    EXPECTED_SEMICOLON
 };
 
 template<class OStream>
@@ -43,6 +49,21 @@ operator<<(
         case ErrorType::EXPECTED_EXPRESSION:
             ostream << "Expected expression";
             break;
+        case ErrorType::IMPROPER_UNARY_NEGATION:
+            ostream << "`-` operator can only act on Numbeers";
+            break;
+        case ErrorType::UNMATCHED_BINARY_OP_TYPES:
+            ostream << "Left and right types must match for binary operation";
+            break;
+        case ErrorType::UNIMPLEMENTED:
+            ostream << "Unimplemented";
+            break;
+        case ErrorType::DIV_BY_ZERO:
+            ostream << "Division by zero is not permitted";
+            break;
+        case ErrorType::EXPECTED_SEMICOLON:
+            ostream << "Expected `;`";
+            break;
     }
     return ostream;
 }
@@ -50,9 +71,11 @@ operator<<(
 template<typename T>
 class [[nodiscard]] ErrorOr {
 public:
+    using ValueType = std::remove_reference_t<T>;
+
     ErrorOr() = default;
     ErrorOr(
-        T&& value
+        T value
     ) 
         : m_is_error{ false }
         , m_error{}
@@ -64,7 +87,7 @@ public:
     ) 
         : m_is_error{ true }
         , m_error{ error }
-        , m_value{}
+        , m_value{ ValueType{} }
     {}
 
     template<typename U>
@@ -82,6 +105,18 @@ public:
     auto
     operator=(
         ErrorOr<U>&& other
+    ) -> ErrorOr& { 
+        m_is_error = other.m_is_error;
+        m_error = other.m_error;
+        m_value = other.m_value; 
+        return *this;
+    }
+
+    template<typename U>
+    requires (std::same_as<T, U>)
+    auto
+    operator=(
+        ErrorOr<U> const& other
     ) -> ErrorOr& { 
         m_is_error = other.m_is_error;
         m_error = other.m_error;
@@ -232,12 +267,12 @@ inline auto
 error(
     std::string_view file,
     int              line,
-    int              column,
+    std::string_view command,
     ErrorType        error_type
 ) -> void {
     std::cout << "\033[31m" << "[Error]" << " "
               << file << ":"
-              << line << ":" 
-              << column << " "
+              << line << ": " 
+              << command << " "
               << error_type <<  "\033[0m" << std::endl;
 }

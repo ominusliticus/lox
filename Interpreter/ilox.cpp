@@ -27,12 +27,12 @@ run(
     Scanner            scanner(source);
     std::vector<Token> tokens{ TRY(scanner.scan_tokens()) };
     Parser             parser(tokens);
-    auto               expression{ TRY(parser.parse()) };
+    auto               statements{ TRY(parser.parse()) };
     ExpressionVisitor  visitor;
-    std::stringstream  ss;
-    visitor.printer(ss, expression);
-    print(ss.str());
-    TRY(visitor.interpret(expression));
+    // std::stringstream  ss;
+    // visitor.printer(ss, expression);
+    // print(ss.str());
+    TRY(visitor.interpret(statements));
     return {};
 }
 

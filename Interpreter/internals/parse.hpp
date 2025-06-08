@@ -49,13 +49,47 @@ public:
         : m_tokens{ tokens }
     {}
 
-    auto
+    // auto
+    // parse(
+    // ) -> ErrorOr<std::shared_ptr<Expression>> {
+    //     return get_expression();
+    // }
+    
+    auto 
     parse(
-    ) -> ErrorOr<std::shared_ptr<Expression>> {
-        return get_expression();
+    ) -> ErrorOr<std::vector<std::shared_ptr<Statement>>> {
+        std::vector<std::shared_ptr<Statement>> statements;
+        while (!is_end()) {
+            auto stmt = TRY(get_statement());
+            statements.push_back(stmt);
+        }
+        return statements;
     }
 
 private:
+    auto
+    get_statement(
+    ) -> ErrorOr<std::shared_ptr<Statement>> {
+        if (match(TokenType::PRINT)) return TRY(print_statement());
+        return TRY(expression_statement());
+    }
+
+    auto
+    print_statement(
+    ) -> ErrorOr<std::shared_ptr<Statement>> {
+        auto expr = TRY(get_expression());
+        TRY(consume(TokenType::SEMICOLON, ErrorType::EXPECTED_SEMICOLON));
+        return std::static_pointer_cast<Statement>(std::make_shared<PrintStmt>(expr));
+    }
+
+    auto
+    expression_statement(
+    ) -> ErrorOr<std::shared_ptr<Statement>> {
+        auto expr = TRY(get_expression());
+        TRY(consume(TokenType::SEMICOLON, ErrorType::EXPECTED_SEMICOLON));
+        return std::static_pointer_cast<Statement>(std::make_shared<ExpressionStmt>(expr));
+    }
+
     auto
     get_expression(
     ) -> ErrorOr<std::shared_ptr<Expression>> {

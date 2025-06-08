@@ -90,6 +90,47 @@ struct Unary : public Expression {
     {}
 };
 
+enum class StatementType {
+    PRINT,
+    EXPRESSION
+};
+
+struct Statement {
+    Statement(
+        Statement&& statement_
+    )
+        : expression{ statement_.expression }
+        , statement_type{ statement_.statement_type }
+    {}
+
+    Statement(
+        std::shared_ptr<Expression> expression_,
+        StatementType               statement_type_
+    )
+        : expression{ expression_ }
+        , statement_type{ statement_type_ }
+    {}
+
+    std::shared_ptr<Expression> expression;
+    StatementType               statement_type;
+};
+
+struct PrintStmt : public Statement {
+    PrintStmt(
+        std::shared_ptr<Expression> expression
+    )
+        : Statement(expression, StatementType::PRINT)
+    {}
+};
+
+struct ExpressionStmt : public Statement {
+    ExpressionStmt(
+        std::shared_ptr<Expression> expression
+    ) 
+        : Statement(expression, StatementType::EXPRESSION)
+    {}
+};
+
 struct ExpressionVisitor {
        ExpressionVisitor() = default;
 
@@ -125,10 +166,26 @@ struct ExpressionVisitor {
 
     auto
     interpret(
-        std::shared_ptr<Expression> expression
+        std::vector<std::shared_ptr<Statement>> statements
     ) -> ErrorOr<void> {
-        Object result = TRY(evaluate(expression));
-        print(result);
+        for (auto const& statement : statements)
+            TRY(execute(statement));
+        return {};
+    }
+
+    auto 
+    interpreter(
+        std::shared_ptr<Statement> statement
+    ) -> ErrorOr<void> {
+        switch (statement->statement_type) {
+            case StatementType::EXPRESSION:
+                TRY(evaluate(statement->expression));
+                break;
+            case StatementType::PRINT:
+                Object obj = TRY(evaluate(statement->expression));
+                print(obj);
+                break;
+        }
         return {};
     }
 
@@ -230,6 +287,14 @@ struct ExpressionVisitor {
     ) -> ErrorOr<Object> {
         auto obj = TRY(this->interpreter(expression));
         return obj;
+    }
+
+    auto
+    execute(
+        std::shared_ptr<Statement> statement
+    ) -> ErrorOr<void> {
+        TRY(this->interpreter(statement));
+        return {};
     }
 
     auto
