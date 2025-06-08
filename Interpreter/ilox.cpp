@@ -32,6 +32,7 @@ run(
     std::stringstream  ss;
     visitor.printer(ss, expression);
     print(ss.str());
+    TRY(visitor.interpret(expression));
     return {};
 }
 

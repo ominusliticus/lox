@@ -8,15 +8,19 @@
 #include "internals/token.hpp"
 
 #include "util/error.hpp"
-#include "util/print.hpp"
 #include "util/try.hpp"
 
 
 // TODO: Add support for ternary operations
 // TODO: Add automatic detection of failed righ expression for binary operations
+// TODO: Add synchronize function from Ch. 6
 
 
 // Implementing the following grammar:
+// program     -> statement* EOF ;
+// statement   -> print_stmt | expr_stmt ;
+// print_stmt  -> "print" expression ";" ;
+// expr_stmt   -> expression ";" ;
 // expression  -> equality | block;
 // block       -> expression "," expression;
 // equality    -> comparison (( "!=" | "==" ) comparison )* ;
@@ -157,6 +161,8 @@ private:
             TRY_LOX(consume(TokenType::RIGHT_PAREN, ErrorType::CLOSING_PAREN), previous());
             return std::static_pointer_cast<Expression>(std::make_shared<Grouping>(expr));
         }
+        if (match(TokenType::IDENTIFIER))
+            return ErrorType::UNIMPLEMENTED;
         return ErrorType::EXPECTED_EXPRESSION;
     }
 

@@ -6,6 +6,8 @@
 
 #include "internals/nil.hpp"
 
+// TODO: Need something that stores a Lox class type
+
 struct Object {
     Object(
     ) 
@@ -48,6 +50,14 @@ struct Object {
 
     std::variant<double, std::string, bool, Nil> literal;
 };
+
+inline auto
+operator==(
+    Object const& right,
+    Object const& left
+) -> bool {
+    return right.literal == left.literal;
+}
 
 template<typename OStream>
 auto
