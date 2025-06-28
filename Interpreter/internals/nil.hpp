@@ -3,13 +3,7 @@
 struct Nil{
 };
 
-inline auto
-operator==(
-    Nil const&,
-    Nil const&
-) -> bool {
-    return true;
-}
+bool operator==(Nil const&, Nil const&);
 
 static Nil nil = {};
 

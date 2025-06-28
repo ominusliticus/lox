@@ -6,58 +6,21 @@
 
 #include "internals/nil.hpp"
 
-// TODO: Need something that stores a Lox class type
 
 struct Object {
-    Object(
-    ) 
-        : literal{}
-    {}
+    Object() = default; 
 
-    explicit
-    Object(
-        double literal_
-    ) 
-        : literal{ literal_ }
-    {}
+    explicit Object(double literal_);
+    explicit Object(std::string literal_); 
+    explicit Object(bool literal_); 
+    explicit Object(Nil literal_); 
 
-    explicit
-    Object(
-        std::string literal_
-    ) 
-        : literal{ literal_ }
-    {}
-
-    explicit
-    Object(
-        bool literal_
-    ) 
-        : literal{ literal_ }
-    {}
-
-    explicit
-    Object(
-        Nil literal_
-    ) 
-        : literal{ literal_ }
-    {}
-
-    Object(
-        Object const& other
-    ) 
-        : literal{ other.literal }
-    {}
+    Object(Object const& other); 
 
     std::variant<double, std::string, bool, Nil> literal;
 };
 
-inline auto
-operator==(
-    Object const& right,
-    Object const& left
-) -> bool {
-    return right.literal == left.literal;
-}
+bool operator==(Object const& right, Object const& left);
 
 template<typename OStream>
 auto

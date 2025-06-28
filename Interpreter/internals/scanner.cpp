@@ -1,0 +1,244 @@
+#include "internals/scanner.hpp"
+
+#include <memory>
+
+#include "util/print.hpp"
+
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+Scanner::Scanner(std::string source) 
+    : m_source{ source }
+{}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Scanner::scan_tokens(
+) -> ErrorOr<std::vector<Token>&> {
+    while (not_end()) {
+        m_start = m_current;
+        scan_token();
+    }
+
+    m_tokens.emplace_back(
+        TokenType::ENDOFFILE,
+        "",
+        Object(),
+        m_line,
+        0
+    );
+    return m_tokens;
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Scanner::scan_token(
+) -> void {
+    char ch{ advance() };
+    switch (ch) {
+        case '(': add_token(TokenType::LEFT_PAREN); break;
+        case ')': add_token(TokenType::RIGHT_PAREN); break;
+        case '{': add_token(TokenType::LEFT_BRACE); break;
+        case '}': add_token(TokenType::RIGHT_BRACE); break;
+        case ',': add_token(TokenType::COMMA); break;
+        case '.': add_token(TokenType::DOT); break;
+        case '-': add_token(TokenType::MINUS); break;
+        case '+': add_token(TokenType::PLUS); break;
+        case ';': add_token(TokenType::SEMICOLON); break;
+        case '*': add_token(TokenType::STAR); break;
+        case '!': add_token(match('=') ? TokenType::BANG_EQUAL : TokenType::BANG); break;
+        case '=': add_token(match('=') ? TokenType::EQUAL_EQUAL : TokenType::EQUAL); break;
+        case '<': add_token(match('=') ? TokenType::LESS_EQUALS : TokenType::LESS); break;
+        case '>': add_token(match('=') ? TokenType::GREATER_EQUAL : TokenType::GREATER); break;
+        case '/': 
+            if (match('/')) // Matching single-line comments
+                while (peek() != '\n' && not_end()) advance();
+            else if (match('*'))
+                while (!(peek() == '*' && peek_next() == '/') && not_end()) {
+                    if (peek() == '\n') ++m_line;
+                    advance();
+                }
+            else
+             add_token(TokenType::SLASH);
+            break;
+        case ' ': break;
+        case '\r': break;
+        case '\t': break;
+        case '\n':
+            ++m_line;
+            break;
+        case '"': process_string(); break;
+        default: 
+            if (is_digit(ch)) process_number();
+            else if (is_alphabetic(ch)) {
+                process_identifier();
+            }
+            else {
+                error(m_line, m_column, ErrorType::INVALID_SYMBOL); 
+                m_has_error |= true;
+            }
+            break;
+    }
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Scanner::add_token(
+    TokenType type
+) -> void {
+    add_token(type, Object());
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Scanner::add_token(
+    TokenType   type,
+    Object      literal
+) -> void {
+    m_tokens.emplace_back(
+        type,
+        m_source.substr(m_start, m_current - m_start),
+        literal,
+        m_line,
+        m_column
+    );
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Scanner::advance(
+) -> char {
+    char ch{ m_source[m_current++] };
+    if (ch != '\n') m_column = 0;
+    else ++m_column;
+    return ch;
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Scanner::is_alphabetic(
+    char ch
+) -> bool {
+    return ('a' <= ch && ch <= 'z') ||
+           ('A' <= ch && ch <= 'Z') ||
+           ch == '_';
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Scanner::is_alphanumeric(
+    char ch
+) -> bool {
+    return is_digit(ch) || is_alphabetic(ch);
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Scanner::is_digit(
+    char ch
+) -> bool {
+    return '0' <= ch && ch <= '9';
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Scanner::match(
+    char expected
+) -> bool {
+    if (not_end()) {
+        if (m_source[m_current] == expected) {
+            ++m_current;
+            ++m_column;
+            return true;
+        }
+        else return false;
+    }
+    else return false;
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Scanner::not_end(
+) -> bool {
+    return static_cast<std::size_t>(m_current) < m_source.size();
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto 
+Scanner::peek(
+) -> char {
+    return not_end() ? m_source[m_current] : '\0';
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Scanner::peek_next(
+) -> char {
+    if (static_cast<std::size_t>(m_current + 1) < m_source.size()) 
+        return m_source[m_current + 1];
+    else return '\0';
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Scanner::process_number(
+) -> void {
+    while (is_digit(peek())) advance();
+    // Check decimal
+    if (peek() == '.' && is_digit(peek_next())) {
+        advance(); // Consume decimal
+        while (is_digit(peek())) advance();
+    }
+    add_token(
+        TokenType::NUMBER,
+        Object{ std::stod(m_source.substr(m_start, m_current - m_start)) }
+    );
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Scanner::process_string(
+) -> void {
+    // Lox does not support espace sequences
+    // Therefore, Lox can support multi-line strings
+    while(peek() != '"' && not_end()) {
+        if (peek() == '\n') ++m_line;
+        advance();
+    }
+    if (!not_end()) {
+        error(m_line, m_column, ErrorType::UNTERMINATED_STRING);
+    }
+    // Consume closing quote
+    advance();
+    add_token(
+        TokenType::STRING,
+        Object{ m_source.substr(m_start + 1, (m_current - m_start) - 2) }
+    );
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Scanner::process_identifier(
+) -> void {
+    while(is_alphanumeric(peek())) advance();
+    std::string text{ m_source.substr(m_start, m_current - m_start) };
+    if (m_keywords.find(text) != m_keywords.end()) add_token(m_keywords[text]);
+    else add_token(TokenType::IDENTIFIER);
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
