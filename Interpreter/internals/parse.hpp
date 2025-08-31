@@ -16,13 +16,14 @@
 
 
 // Implementing the following grammar:
-// program     -> declaratio* EOF ;
+// program     -> declaration* EOF ;
 // declaration -> var_decl | statement ;
 // var_decl    -> "var" IDENTIFIER ( "=" expression )? ";" ;
 // statement   -> print_stmt | expr_stmt ;
 // print_stmt  -> "print" expression ";" ;
 // expr_stmt   -> expression ";" ;
-// expression  -> equality | block;
+// expression  -> assignment | block ;
+// assignment  -> IDENTIFIER "=" assignment | equality ;
 // block       -> expression "," expression;
 // equality    -> comparison (( "!=" | "==" ) comparison )* ;
 // comparison  -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -52,11 +53,14 @@ public:
     ErrorOr<std::vector<std::shared_ptr<Statement>>> parse();
 
 private:
+    ErrorOr<std::shared_ptr<Statement>> declaration();
+    ErrorOr<std::shared_ptr<Statement>> variable_declaration();
     ErrorOr<std::shared_ptr<Statement>> get_statement();
     ErrorOr<std::shared_ptr<Statement>> print_statement();
     ErrorOr<std::shared_ptr<Statement>> expression_statement();
 
     ErrorOr<std::shared_ptr<Expression>> get_expression();
+    ErrorOr<std::shared_ptr<Expression>> assignment();
     ErrorOr<std::shared_ptr<Expression>> equality();
     ErrorOr<std::shared_ptr<Expression>> comparison();
     ErrorOr<std::shared_ptr<Expression>> term();

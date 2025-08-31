@@ -1,5 +1,3 @@
-#pragma once
-
 #include <memory>
 #include <sstream>
 #include <utility>
@@ -11,26 +9,26 @@
 
 #include "internals/ast.hpp"
 
-#include "internals/ast/binary.hpp"
-#include "internals/ast/expression_type.hpp"
-#include "internals/ast/grouping.hpp"
-#include "internals/ast/literal.hpp"
-#include "internals/ast/unary.hpp"
-#include "internals/ast/variable.hpp"
+#include "internals/ast/expressions/binary.hpp"
+#include "internals/ast/expressions/expression_type.hpp"
+#include "internals/ast/expressions/grouping.hpp"
+#include "internals/ast/expressions/literal.hpp"
+#include "internals/ast/expressions/unary.hpp"
+#include "internals/ast/expressions/variable.hpp"
 
-#include "internals/ast/expression_stmt.hpp"
-#include "internals/ast/print_stmt.hpp"
-#include "internals/ast/statement_type.hpp"
-#include "internals/ast/var_decl_stmt.hpp"
+#include "internals/ast/statements/expression_stmt.hpp"
+#include "internals/ast/statements/print_stmt.hpp"
+#include "internals/ast/statements/statement_type.hpp"
+#include "internals/ast/statements/var_decl_stmt.hpp"
 
 // TDOO: Our type system is not as convenient as the Java one.
 //       We need to create a class heirarchy that allows us to automate much of the visiting down
 //       the road.
 
-namespace ast {
+std::unique_ptr<Environment> AST::m_environment = std::make_unique<Environment>();
 
 auto
-interpret(
+AST::interpret(
     std::vector<std::shared_ptr<Statement>> statements
 ) -> ErrorOr<void> {
     for (auto const& statement : statements)
@@ -39,23 +37,37 @@ interpret(
 }
 
 auto 
-interpreter(
+AST::interpreter(
     std::shared_ptr<Statement> statement
 ) -> ErrorOr<void> {
     switch (statement->statement_type) {
         case StatementType::EXPRESSION:
             TRY(evaluate(statement->expression));
             break;
-        case StatementType::PRINT:
+        case StatementType::PRINT: 
+        { 
+            // Variable declarations need to scoped in switch statement
             Object obj = TRY(evaluate(statement->expression));
             print(obj);
             break;
+        }
+        case StatementType::VAR_DECL: 
+        {
+            Object value(nil);
+            auto var_stmt = std::static_pointer_cast<VarDeclStmt>(statement);
+            if (var_stmt->expression)
+                value = TRY(evaluate(var_stmt->expression));
+            m_environment->define(var_stmt->name.lexeme, value);
+            break;
+        }
+        default:
+            return ErrorType::UNREACHABLE;
     }
     return {};
 }
 
 auto 
-interpreter(
+AST::interpreter(
     std::shared_ptr<Expression> expression
 ) -> ErrorOr<Object> {
     switch (expression->expression_type) {
@@ -76,6 +88,17 @@ interpreter(
                 default:
                     return ErrorType::UNREACHABLE;
             }
+        }
+        case ExpressionType::VARIABLE: 
+            return TRY(m_environment->get(
+                std::static_pointer_cast<Variable>(expression)->name
+            ));
+        case ExpressionType::ASSIGNMENT:
+        {
+            auto expr = std::static_pointer_cast<Assignment>(expression);
+            Object value = TRY(evaluate(expr->value));
+            m_environment->assign(expr->name, std::move(value));
+            return value;
         }
         case ExpressionType::BINARY:
         {
@@ -147,23 +170,23 @@ interpreter(
 }
 
 auto
-evaluate(
+AST::evaluate(
     std::shared_ptr<Expression> expression
 ) -> ErrorOr<Object> {
-    auto obj = TRY(ast::interpreter(expression));
+    auto obj = TRY(interpreter(expression));
     return obj;
 }
 
 auto
-execute(
+AST::execute(
     std::shared_ptr<Statement> statement
 ) -> ErrorOr<void> {
-    TRY(ast::interpreter(statement));
+    TRY(interpreter(statement));
     return {};
 }
 
 auto
-is_truthy(
+AST::is_truthy(
     Object const& obj
 ) -> bool {
     // Only explicit false or nil value return false, all other values return true
@@ -172,5 +195,4 @@ is_truthy(
     if (std::get_if<bool>(&obj.literal))
         return std::get<bool>(obj.literal);
     else return true;
-}
 }

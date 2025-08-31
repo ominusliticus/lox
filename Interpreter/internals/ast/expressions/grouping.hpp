@@ -1,6 +1,6 @@
 #pragma once
 
-#include "internals/ast/expression_type.hpp"
+#include "internals/ast/expressions/expression_type.hpp"
 #include "internals/ast/expression.hpp"
 
 

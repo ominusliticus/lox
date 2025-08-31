@@ -1,4 +1,4 @@
-#include "internals/ast/var_decl_stmt.hpp"
+#include "internals/ast/statements/var_decl_stmt.hpp"
 
 VarDeclStmt::VarDeclStmt(
     Token const&                name_,

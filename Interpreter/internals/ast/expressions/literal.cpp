@@ -1,7 +1,7 @@
-#include "internals/ast/literal.hpp"
+#include "internals/ast/expressions/literal.hpp"
 
 Literal::Literal(
-    Object literal
+    Object const& literal
 ) 
     : Expression({}, {}, {}, ExpressionType::LITERAL)
     , object{ literal }

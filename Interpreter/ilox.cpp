@@ -19,6 +19,9 @@
 
 // TODO: Profile the number of string copies, where can we use std::string_view?
 
+// Global AST: could be made a single
+static AST ast;
+
 // Reads and lexes file
 auto 
 run(
@@ -31,7 +34,7 @@ run(
     // std::stringstream  ss;
     // visitor.printer(ss, expression);
     // print(ss.str());
-    TRY(ast::interpret(statements));
+    TRY(ast.interpret(statements));
     return {};
 }
 

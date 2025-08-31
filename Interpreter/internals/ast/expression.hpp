@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "internals/ast/expression_type.hpp"
+#include "internals/ast/expressions/expression_type.hpp"
 
 #include "internals/token.hpp"
 

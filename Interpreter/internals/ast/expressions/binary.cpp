@@ -1,4 +1,4 @@
-#include "internals/ast/binary.hpp"
+#include "internals/ast/expressions/binary.hpp"
 
 Binary::Binary(
     std::shared_ptr<Expression> left_expression_,

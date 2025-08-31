@@ -12,6 +12,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 add_compile_options(
     -Wall -Wpedantic -Wextra
+    -g
     -ferror-limit=3
     -std=c++20
     -Wno-gnu-statement-expression

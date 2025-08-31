@@ -4,8 +4,8 @@
 #include <memory>
 
 #include "internals/ast/expression.hpp"
-#include "internals/ast/expression_type.hpp"
-#include "internals/ast/literal.hpp"
+#include "internals/ast/expressions/expression_type.hpp"
+#include "internals/ast/expressions/literal.hpp"
 
 namespace ast {
 

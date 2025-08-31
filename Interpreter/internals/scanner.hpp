@@ -17,6 +17,13 @@ class Scanner {
 public:
     Scanner() = default;
     Scanner(std::string source) ;
+    
+    // Disable copying and moving
+    Scanner(Scanner const&) = delete;
+    Scanner(Scanner&&)      = delete;
+
+    Scanner& operator=(Scanner const&) = delete;
+    Scanner& operator=(Scanner&&)      = delete;
 
     ErrorOr<std::vector<Token>&> scan_tokens();
     void                         scan_token();
@@ -41,9 +48,9 @@ public:
 private:
     std::string        m_source;
     std::vector<Token> m_tokens{};
-    int                m_start{ 0 };
-    int                m_current{ 0 };
-    int                m_line{ 0 };
+    std::size_t        m_start{ 0 };
+    std::size_t        m_current{ 0 };
+    std::size_t        m_line{ 0 };
     int                m_column{ 0 };
     bool               m_has_error{ false };
 

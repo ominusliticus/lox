@@ -2,25 +2,25 @@
 
 
 Object::Object(
-    double literal_
+    double const& literal_
 ) 
     : literal{ literal_ }
 {}
 
 Object::Object(
-    std::string literal_
+    std::string const& literal_
 ) 
     : literal{ literal_ }
 {}
 
 Object::Object(
-    bool literal_
+    bool const& literal_
 ) 
     : literal{ literal_ }
 {}
 
 Object::Object(
-    Nil literal_
+    Nil const& literal_
 ) 
     : literal{ literal_ }
 {}
@@ -31,6 +31,13 @@ Object::Object(
     : literal{ other.literal }
 {}
 
+auto
+Object::operator=(
+    Object const& other
+) -> Object& {
+    literal = other.literal;
+    return *this;
+}
 
 auto
 operator==(

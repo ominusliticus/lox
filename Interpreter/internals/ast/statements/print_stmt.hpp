@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "internals/ast/statement_type.hpp"
+#include "internals/ast/statements/statement_type.hpp"
 #include "internals/ast/statement.hpp"
 
 struct PrintStmt : public Statement {

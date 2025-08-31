@@ -7,6 +7,7 @@ enum class ExpressionType : std::uint8_t {
     GROUPING,
     LITERAL,
     UNARY,
-    VARIABLE
+    VARIABLE,
+    ASSIGNMENT
 };
 

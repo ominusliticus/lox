@@ -10,12 +10,14 @@
 struct Object {
     Object() = default; 
 
-    explicit Object(double literal_);
-    explicit Object(std::string literal_); 
-    explicit Object(bool literal_); 
-    explicit Object(Nil literal_); 
+    explicit Object(double const& literal_);
+    explicit Object(std::string const& literal_); 
+    explicit Object(bool const& literal_); 
+    explicit Object(Nil const& literal_); 
 
     Object(Object const& other); 
+
+    Object& operator=(Object const& other);
 
     std::variant<double, std::string, bool, Nil> literal;
 };

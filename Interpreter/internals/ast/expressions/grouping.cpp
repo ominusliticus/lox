@@ -1,4 +1,4 @@
-#include "internals/ast/grouping.hpp"
+#include "internals/ast/expressions/grouping.hpp"
 
 Grouping::Grouping(
     std::shared_ptr<Expression> expression_

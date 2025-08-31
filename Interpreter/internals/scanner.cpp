@@ -57,7 +57,10 @@ Scanner::scan_token(
                 while (peek() != '\n' && not_end()) advance();
             else if (match('*'))
                 while (!(peek() == '*' && peek_next() == '/') && not_end()) {
-                    if (peek() == '\n') ++m_line;
+                    if (peek() == '\n') {
+                        m_column = 0;
+                        ++m_line;
+                    }
                     advance();
                 }
             else
@@ -104,7 +107,7 @@ Scanner::add_token(
         m_source.substr(m_start, m_current - m_start),
         literal,
         m_line,
-        m_column
+        m_column - (m_current - m_start) // Get start of word
     );
 }
 

@@ -6,6 +6,9 @@
 #include <type_traits>
 #include <utility>
 
+// TODO: The error class could benefit from some concept magic.
+//       See AK::ErrorOr implementation
+
 enum class ErrorType {
     FILE_NOT_FOUND,
     UNREACHABLE,
@@ -18,7 +21,11 @@ enum class ErrorType {
     UNMATCHED_BINARY_OP_TYPES,
     UNIMPLEMENTED,
     DIV_BY_ZERO,
-    EXPECTED_SEMICOLON
+    EXPECTED_SEMICOLON,
+    EXPECTED_STATEMEMT,
+    EXPECTED_VARIABLE_NAME,
+    UNKNOWN_IDENTIFIER,
+    EXPECTED_ASSIGNMENT_TARGET
 };
 
 template<class OStream>
@@ -63,6 +70,18 @@ operator<<(
             break;
         case ErrorType::EXPECTED_SEMICOLON:
             ostream << "Expected `;`";
+            break;
+        case ErrorType::EXPECTED_STATEMEMT:
+            ostream << "Expected statement";
+            break;
+        case ErrorType::EXPECTED_VARIABLE_NAME:
+            ostream << "Expected variable name";
+            break;
+        case ErrorType::UNKNOWN_IDENTIFIER:
+            ostream << "Unknown identifier";
+            break;
+        case ErrorType::EXPECTED_ASSIGNMENT_TARGET:
+            ostream << "Expected assignment target";
             break;
     }
     return ostream;

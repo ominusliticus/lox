@@ -21,10 +21,29 @@ Parser::parse(
 ) -> ErrorOr<std::vector<std::shared_ptr<Statement>>> {
     std::vector<std::shared_ptr<Statement>> statements;
     while (!is_end()) {
-        auto stmt = TRY(get_statement());
+        auto stmt = TRY(declaration());
         statements.push_back(stmt);
     }
     return statements;
+}
+
+auto
+Parser::declaration(
+) -> ErrorOr<std::shared_ptr<Statement>> {
+    if (match(TokenType::VAR)) return variable_declaration();
+    return get_statement();
+}
+
+auto 
+Parser::variable_declaration(
+) -> ErrorOr<std::shared_ptr<Statement>> {
+    Token name = *TRY(consume(TokenType::IDENTIFIER, ErrorType::EXPECTED_VARIABLE_NAME));
+    std::shared_ptr<Expression> initiailizer;
+    if (match(TokenType::EQUAL)) {
+        initiailizer = TRY(get_expression());
+    }
+    TRY(consume(TokenType::SEMICOLON, ErrorType::EXPECTED_SEMICOLON));
+    return std::static_pointer_cast<Statement>(std::make_shared<VarDeclStmt>(name, initiailizer));
 }
 
 auto
@@ -53,15 +72,34 @@ Parser::expression_statement(
 auto
 Parser::get_expression(
 ) -> ErrorOr<std::shared_ptr<Expression>> {
-    std::shared_ptr<Expression> left_expression{ TRY_LOX(equality(), previous()) };
-    while (match(TokenType::COMMA)) {
-        std::shared_ptr<Token> operation{ previous() };
-        std::shared_ptr<Expression> right_expression{ TRY_LOX(equality(), previous()) };
-        left_expression = std::static_pointer_cast<Expression>(std::make_shared<Binary>(
-            left_expression, operation, right_expression
-        ));
+    return assignment();
+    // std::shared_ptr<Expression> left_expression{ TRY_LOX(equality(), previous()) };
+    // while (match(TokenType::COMMA)) {
+    //     std::shared_ptr<Token> operation{ previous() };
+    //     std::shared_ptr<Expression> right_expression{ TRY_LOX(equality(), previous()) };
+    //     left_expression = std::static_pointer_cast<Expression>(std::make_shared<Binary>(
+    //         left_expression, operation, right_expression
+    //     ));
+    // }
+    // return left_expression;
+}
+
+auto
+Parser::assignment(
+) -> ErrorOr<std::shared_ptr<Expression>> {
+    auto expr = TRY(equality());
+
+    if (match(TokenType::EQUAL)) {
+        auto equals = previous();
+        auto value = TRY(assignment());
+        if (value->expression_type == ExpressionType::VARIABLE) {
+            Token name = std::static_pointer_cast<Variable>(value)->name;
+            auto result = std::make_shared<Assignment>(std::move(name), value);
+            return std::static_pointer_cast<Expression>(result);
+        }
+        return ErrorType::EXPECTED_ASSIGNMENT_TARGET;
     }
-    return left_expression;
+    return expr;
 }
 
 auto
@@ -150,13 +188,13 @@ Parser::primary(
             std::make_shared<Literal>(previous()->literal)
         );
     }
+    if (match(TokenType::IDENTIFIER))
+        return std::static_pointer_cast<Expression>(std::make_shared<Variable>(previous()));
     if (match(TokenType::LEFT_PAREN)) {
         std::shared_ptr<Expression> expr{ TRY_LOX(get_expression(), previous()) };
         TRY_LOX(consume(TokenType::RIGHT_PAREN, ErrorType::CLOSING_PAREN), previous());
         return std::static_pointer_cast<Expression>(std::make_shared<Grouping>(expr));
     }
-    if (match(TokenType::IDENTIFIER))
-        return ErrorType::UNIMPLEMENTED;
     return ErrorType::EXPECTED_EXPRESSION;
 }
 
