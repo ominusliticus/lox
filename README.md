@@ -1,5 +1,5 @@
 # Lox Hacker Language
-This repository holds my implementations of the [Lox programming language](https://craftinginterpretors.com).
+This repository holds my implementations of the [Lox programming language](https://craftinginterpreters.com).
 It is my attempt to breaking into the compiler world.
 
 ## Interpreter
