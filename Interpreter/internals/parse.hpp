@@ -19,12 +19,16 @@
 // program     -> declaration* EOF ;
 // declaration -> var_decl | statement ;
 // var_decl    -> "var" IDENTIFIER ( "=" expression )? ";" ;
-// statement   -> print_stmt | expr_stmt ;
+// statement   -> if_stmt | print_stmt | expr_stmt | stmt_block ;
+// if_stmt     -> "if" "(" expression ")" statement ( "else" statement)? ;
 // print_stmt  -> "print" expression ";" ;
 // expr_stmt   -> expression ";" ;
-// expression  -> assignment | block ;
-// assignment  -> IDENTIFIER "=" assignment | equality ;
-// block       -> expression "," expression;
+// stmt_block  -> "{" declaration* "}";
+// expression  -> assignment | expr_block ;
+// assignment  -> IDENTIFIER "=" assignment | logic_or ;
+// logic_or    -> logic_and ( "or" logic_and )* ;
+// logic_and   -> equality ( "and" equality )* ;
+// expr_block  -> expression "," expression;
 // equality    -> comparison (( "!=" | "==" ) comparison )* ;
 // comparison  -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 // term        -> factor ( ( "-"| "+" ) factor )* ;
@@ -42,7 +46,7 @@
 class Parser {
 public:
     Parser() = default;
-    Parser(std::vector<Token> tokens); 
+    Parser(std::vector<Token>&& tokens); 
 
     // auto
     // parse(
@@ -57,10 +61,15 @@ private:
     ErrorOr<std::shared_ptr<Statement>> variable_declaration();
     ErrorOr<std::shared_ptr<Statement>> get_statement();
     ErrorOr<std::shared_ptr<Statement>> print_statement();
+    ErrorOr<std::shared_ptr<Statement>> if_statement();
     ErrorOr<std::shared_ptr<Statement>> expression_statement();
+
+    ErrorOr<std::vector<std::shared_ptr<Statement>>> get_block();
 
     ErrorOr<std::shared_ptr<Expression>> get_expression();
     ErrorOr<std::shared_ptr<Expression>> assignment();
+    ErrorOr<std::shared_ptr<Expression>> or_expression();
+    ErrorOr<std::shared_ptr<Expression>> and_expression();
     ErrorOr<std::shared_ptr<Expression>> equality();
     ErrorOr<std::shared_ptr<Expression>> comparison();
     ErrorOr<std::shared_ptr<Expression>> term();

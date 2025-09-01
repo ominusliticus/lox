@@ -6,10 +6,6 @@
 #include "internals/ast/statement.hpp"
 
 struct PrintStmt : public Statement {
-    PrintStmt(
-        std::shared_ptr<Expression> expression
-    )
-        : Statement(expression, StatementType::PRINT)
-    {}
+    PrintStmt(std::shared_ptr<Expression> expression);
 };
 

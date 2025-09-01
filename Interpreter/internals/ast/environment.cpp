@@ -19,6 +19,9 @@ Environment::assign(
         m_values[name] = std::move(value);
         return {};
     }
+    if (m_enclosing)
+        return m_enclosing->assign(name, std::move(value));
+
     return ErrorType::UNKNOWN_IDENTIFIER;
 }
 
@@ -29,6 +32,13 @@ Environment::get(
     auto itr = m_values.find(name.lexeme);
     if (itr != m_values.end())
         return itr->second;
+    if (m_enclosing) 
+        return m_enclosing->get(name);
 
     return ErrorType::UNKNOWN_IDENTIFIER;
+}
+
+auto Environment::enclosing(
+) && -> std::unique_ptr<Environment> {
+    return std::move(m_enclosing);
 }

@@ -9,27 +9,21 @@
 
 #include "internals/ast.hpp"
 
-#include "internals/ast/expressions/binary.hpp"
-#include "internals/ast/expressions/expression_type.hpp"
-#include "internals/ast/expressions/grouping.hpp"
-#include "internals/ast/expressions/literal.hpp"
-#include "internals/ast/expressions/unary.hpp"
-#include "internals/ast/expressions/variable.hpp"
+// TODO:
+//  1. No use of auto keyword
+//  2. Use copy initialization over uniform initialization
+//  3. Align on identifier name
+//  4. Alight on equal signs
 
-#include "internals/ast/statements/expression_stmt.hpp"
-#include "internals/ast/statements/print_stmt.hpp"
-#include "internals/ast/statements/statement_type.hpp"
-#include "internals/ast/statements/var_decl_stmt.hpp"
-
-// TDOO: Our type system is not as convenient as the Java one.
-//       We need to create a class heirarchy that allows us to automate much of the visiting down
-//       the road.
+// NOTE: As our inheritance structure neither relies on virtual functions nor virtual distructores,
+//       we are safe to use std::static_pointer_cast for all our pointer conversion down our 
+//       hierarchy tree
 
 std::unique_ptr<Environment> AST::m_environment = std::make_unique<Environment>();
 
 auto
 AST::interpret(
-    std::vector<std::shared_ptr<Statement>> statements
+    std::vector<std::shared_ptr<Statement>>&& statements
 ) -> ErrorOr<void> {
     for (auto const& statement : statements)
         TRY(execute(statement));
@@ -57,7 +51,24 @@ AST::interpreter(
             auto var_stmt = std::static_pointer_cast<VarDeclStmt>(statement);
             if (var_stmt->expression)
                 value = TRY(evaluate(var_stmt->expression));
-            m_environment->define(var_stmt->name.lexeme, value);
+            m_environment->define(var_stmt->name.lexeme, std::move(value));
+            break;
+        }
+        case StatementType::BLOCK:
+        {
+            auto block_stmt = std::static_pointer_cast<Block>(statement);
+            m_environment = std::make_unique<Environment>(std::move(m_environment));
+            for (auto& stmt : block_stmt->statements)
+                TRY(execute(stmt));
+            m_environment = std::move(*m_environment.release()).enclosing();
+            break;
+        }
+        case StatementType::IF:
+        {
+            auto if_stmt = std::static_pointer_cast<IfStmt>(statement);
+            auto condition_eval = TRY(evaluate(if_stmt->condition));
+            if (is_truthy(condition_eval)) TRY(execute(if_stmt->then_branch));
+            else if (if_stmt->else_branch) TRY(execute(if_stmt->else_branch));
             break;
         }
         default:
@@ -75,6 +86,17 @@ AST::interpreter(
             return evaluate(expression->left_expression);
         case ExpressionType::LITERAL:
             return std::reinterpret_pointer_cast<Literal>(expression)->object;
+        case ExpressionType::LOGICAL:
+        {
+            Object left = TRY(evaluate(expression->left_expression));
+            if (expression->operation->type == TokenType::OR) {
+                if (is_truthy(left)) return left;
+            }
+            else {
+                if (!is_truthy(left)) return left;
+            }
+            return TRY(evaluate(expression->right_expression));
+        }
         case ExpressionType::UNARY:
         {
             Object right_obj = TRY(evaluate(expression->right_expression));
@@ -97,7 +119,7 @@ AST::interpreter(
         {
             auto expr = std::static_pointer_cast<Assignment>(expression);
             Object value = TRY(evaluate(expr->value));
-            m_environment->assign(expr->name, std::move(value));
+            TRY(m_environment->assign(expr->name.lexeme, std::move(value)));
             return value;
         }
         case ExpressionType::BINARY:

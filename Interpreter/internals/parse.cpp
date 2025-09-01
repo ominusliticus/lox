@@ -4,8 +4,16 @@
 
 #include "util/try.hpp"
 
+
+// TODO:
+//  1. No use of auto keyword
+//  2. Use copy initialization over uniform initialization
+//  3. Align on identifier name
+//  4. Alight on equal signs
+//  5. Use TRY_LOX over TRY
+
 Parser::Parser(
-    std::vector<Token> tokens
+    std::vector<Token>&& tokens
 ) 
     : m_tokens{ tokens }
 {}
@@ -49,8 +57,25 @@ Parser::variable_declaration(
 auto
 Parser::get_statement(
 ) -> ErrorOr<std::shared_ptr<Statement>> {
+    if (match(TokenType::IF)) return TRY(if_statement());
     if (match(TokenType::PRINT)) return TRY(print_statement());
+    if (match(TokenType::LEFT_BRACE)) {
+        auto stmts = TRY(get_block());
+        return std::static_pointer_cast<Statement>(std::make_shared<Block>(std::move(stmts)));
+    }
     return TRY(expression_statement());
+}
+
+auto
+Parser::get_block(
+) -> ErrorOr<std::vector<std::shared_ptr<Statement>>> {
+    std::vector<std::shared_ptr<Statement>> statements;
+    while (!check(TokenType::RIGHT_BRACE) && not_end()) {
+        auto stmt = TRY(declaration());
+        statements.push_back(stmt);
+    }
+    TRY(consume(TokenType::RIGHT_BRACE, ErrorType::EXPECTED_RIGHT_BRACE));
+    return statements;
 }
 
 auto
@@ -59,6 +84,24 @@ Parser::print_statement(
     auto expr = TRY(get_expression());
     TRY(consume(TokenType::SEMICOLON, ErrorType::EXPECTED_SEMICOLON));
     return std::static_pointer_cast<Statement>(std::make_shared<PrintStmt>(expr));
+}
+
+auto
+Parser::if_statement(
+) -> ErrorOr<std::shared_ptr<Statement>> {
+   TRY(consume(TokenType::LEFT_PAREN, ErrorType::EXPECTED_LEFT_PAREN)); 
+    auto condition = TRY(get_expression());
+    TRY(consume(TokenType::RIGHT_PAREN, ErrorType::EXPECTED_RIGHT_PAREN));
+    auto then_branch = TRY(get_statement());
+    if (match(TokenType::ELSE)) {
+        auto else_branch = TRY(get_statement());
+        return std::static_pointer_cast<Statement>(
+            std::make_shared<IfStmt>(condition, then_branch, else_branch)
+        );
+    }
+    return std::static_pointer_cast<Statement>(
+        std::make_shared<IfStmt>(condition, then_branch, nullptr)
+    );
 }
 
 auto
@@ -87,7 +130,7 @@ Parser::get_expression(
 auto
 Parser::assignment(
 ) -> ErrorOr<std::shared_ptr<Expression>> {
-    auto expr = TRY(equality());
+    auto expr = TRY(or_expression());
 
     if (match(TokenType::EQUAL)) {
         auto equals = previous();
@@ -98,6 +141,34 @@ Parser::assignment(
             return std::static_pointer_cast<Expression>(result);
         }
         return ErrorType::EXPECTED_ASSIGNMENT_TARGET;
+    }
+    return expr;
+}
+
+auto
+Parser::or_expression(
+) -> ErrorOr<std::shared_ptr<Expression>> {
+    auto expr = TRY(and_expression());
+    while (match(TokenType::OR)) {
+        auto operation = previous();
+        auto right = TRY(and_expression());
+        expr = std::static_pointer_cast<Expression>(
+            std::make_shared<Logical>(expr, operation, right)
+        );
+    }
+    return expr;
+}
+
+auto 
+Parser::and_expression(
+) -> ErrorOr<std::shared_ptr<Expression>> {
+    auto expr = TRY(equality());
+    while (match(TokenType::AND)) {
+        auto operation = previous();
+        auto right = TRY(equality());
+        expr = std::static_pointer_cast<Expression>(
+            std::make_shared<Logical>(expr, operation, right)
+        );
     }
     return expr;
 }

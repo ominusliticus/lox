@@ -29,12 +29,12 @@ run(
 ) -> ErrorOr<void> {
     Scanner            scanner(source);
     std::vector<Token> tokens{ TRY(scanner.scan_tokens()) };
-    Parser             parser(tokens);
+    Parser             parser(std::move(tokens));
     auto               statements{ TRY(parser.parse()) };
     // std::stringstream  ss;
     // visitor.printer(ss, expression);
     // print(ss.str());
-    TRY(ast.interpret(statements));
+    TRY(ast.interpret(std::move(statements)));
     return {};
 }
 
