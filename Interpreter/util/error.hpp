@@ -25,7 +25,11 @@ enum class ErrorType {
     EXPECTED_STATEMEMT,
     EXPECTED_VARIABLE_NAME,
     UNKNOWN_IDENTIFIER,
-    EXPECTED_ASSIGNMENT_TARGET
+    EXPECTED_ASSIGNMENT_TARGET,
+    EXPECTED_RIGHT_BRACE,
+    EXPECTED_LEFT_PAREN,
+    EXPECTED_RIGHT_PAREN,
+    END_OF_ERRORS
 };
 
 template<class OStream>
@@ -51,13 +55,13 @@ operator<<(
             ostream << "Unterminated string";
             break;
         case ErrorType::CLOSING_PAREN:
-            ostream << "Expected ')' after expression";
+            ostream << "Expected \")\" after expression";
             break;
         case ErrorType::EXPECTED_EXPRESSION:
             ostream << "Expected expression";
             break;
         case ErrorType::IMPROPER_UNARY_NEGATION:
-            ostream << "`-` operator can only act on Numbeers";
+            ostream << "\"-\" operator can only act on Numbers";
             break;
         case ErrorType::UNMATCHED_BINARY_OP_TYPES:
             ostream << "Left and right types must match for binary operation";
@@ -69,7 +73,7 @@ operator<<(
             ostream << "Division by zero is not permitted";
             break;
         case ErrorType::EXPECTED_SEMICOLON:
-            ostream << "Expected `;`";
+            ostream << "Expected \";\"";
             break;
         case ErrorType::EXPECTED_STATEMEMT:
             ostream << "Expected statement";
@@ -83,10 +87,22 @@ operator<<(
         case ErrorType::EXPECTED_ASSIGNMENT_TARGET:
             ostream << "Expected assignment target";
             break;
+        case ErrorType::EXPECTED_RIGHT_BRACE:
+            ostream << "Expected \"}\" to end block";
+            break;
+        case ErrorType::EXPECTED_LEFT_PAREN:
+            ostream << "Expected \"(\" after \"if\"";
+            break;
+        case ErrorType::EXPECTED_RIGHT_PAREN:
+            ostream << "Expected \")\" to end \"if\" condition";
+            break;
+        case ErrorType::END_OF_ERRORS:
+            break;
     }
     return ostream;
 }
 
+// Error class can be consolidated using requires clauses more intelligently
 template<typename T>
 class [[nodiscard]] ErrorOr {
 public:

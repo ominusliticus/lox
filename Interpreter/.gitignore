@@ -2,3 +2,6 @@ ilox
 **.o
 **build
 **.cache
+
+test/parser_test_1
+util/decorate_error.hpp
