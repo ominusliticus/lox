@@ -3,20 +3,20 @@
 Expression::Expression(
     Expression&& expression
 ) 
-    : left_expression{ expression.left_expression }
-    , operation{ expression.operation }
-    , right_expression{ expression.right_expression }
-    , expression_type{ expression.expression_type }
+    : left_expression{ std::move(expression.left_expression) }
+    , operation{ std::move(expression.operation) }
+    , right_expression{ std::move(expression.right_expression) }
+    , expression_type{ std::move(expression.expression_type) }
 {}
 
 Expression::Expression(
-    std::shared_ptr<Expression> left_expression_,
-    std::shared_ptr<Token>      operation_,
-    std::shared_ptr<Expression> right_expression_,
+    std::unique_ptr<Expression> left_expression_,
+    std::unique_ptr<Token>      operation_,
+    std::unique_ptr<Expression> right_expression_,
     ExpressionType              expression_type_
 ) 
-    : left_expression{ left_expression_ }
-    , operation{ operation_ }
-    , right_expression{ right_expression_ }
+    : left_expression{ std::move(left_expression_) }
+    , operation{ std::move(operation_) }
+    , right_expression{ std::move(right_expression_) }
     , expression_type{ expression_type_ }
 {}

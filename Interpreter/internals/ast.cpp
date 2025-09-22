@@ -10,6 +10,7 @@
 #include "internals/ast.hpp"
 
 // TODO:
+//  0. Add ....oooO0Oooo..... separators
 //  1. No use of auto keyword
 //  2. Use copy initialization over uniform initialization
 //  3. Align on identifier name
