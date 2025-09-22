@@ -59,11 +59,11 @@ struct Token {
         int         line_,
         int         column_
     ) 
-        : type{ type_ }
-        , lexeme{ lexeme_ }
-        , literal{ literal_ }
-        , line{ line_ }
-        , column{ column_ }
+        : type(type_)
+        , lexeme(lexeme_)
+        , literal(literal_)
+        , line(line_)
+        , column(column_)
     {}
 
     TokenType   type;

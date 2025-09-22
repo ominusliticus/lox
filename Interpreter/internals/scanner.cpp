@@ -8,7 +8,7 @@
 // .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
 
 Scanner::Scanner(std::string source) 
-    : m_source{ source }
+    : m_source(source)
 {}
 
 // .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
