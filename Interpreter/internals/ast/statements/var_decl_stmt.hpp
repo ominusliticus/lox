@@ -6,7 +6,9 @@
 #include "internals/ast/statement.hpp"
 
 struct VarDeclStmt : public Statement {
-    VarDeclStmt(Token const& name_, std::shared_ptr<Expression> expression);
+    VarDeclStmt(Token const& name_, std::unique_ptr<Expression> expression);
+
+    ErrorOr<void> visit(Interpreter* interpret) final;
 
     Token name;
 };

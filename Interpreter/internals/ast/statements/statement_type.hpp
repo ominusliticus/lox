@@ -5,7 +5,8 @@ enum class StatementType {
     EXPRESSION,
     VAR_DECL,
     BLOCK,
-    IF
+    IF,
+    WHILE
 };
 
 
@@ -30,6 +31,9 @@ operator<<(
             break;
         case StatementType::IF:
             ostream << "IF";
+            break;
+        case StatementType::WHILE:
+            ostream << "WHILE";
             break;
     }
     return ostream;

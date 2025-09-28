@@ -19,8 +19,10 @@
 // program     -> declaration* EOF ;
 // declaration -> var_decl | statement ;
 // var_decl    -> "var" IDENTIFIER ( "=" expression )? ";" ;
-// statement   -> if_stmt | print_stmt | expr_stmt | stmt_block ;
+// statement   -> expr_stmt | for_stmt | if_stmt | print_stmt | while_stmt | stmt_block ;
+// for_stmt    -> "for" "(" ( var_decl | expr_stmt | ";" ) expression? ";" expression? ")" statement ;
 // if_stmt     -> "if" "(" expression ")" statement ( "else" statement)? ;
+// while_stmt  -> "while" "(" expression ")" statement ;
 // print_stmt  -> "print" expression ";" ;
 // expr_stmt   -> expression ";" ;
 // stmt_block  -> "{" declaration* "}";
@@ -50,39 +52,41 @@ public:
 
     // auto
     // parse(
-    // ) -> ErrorOr<std::shared_ptr<Expression>> {
+    // ) -> ErrorOr<std::unique_ptr<Expression>> {
     //     return get_expression();
     // }
     
-    ErrorOr<std::vector<std::shared_ptr<Statement>>> parse();
+    ErrorOr<std::vector<std::unique_ptr<Statement>>> parse();
 
 private:
-    ErrorOr<std::shared_ptr<Statement>> declaration();
-    ErrorOr<std::shared_ptr<Statement>> variable_declaration();
-    ErrorOr<std::shared_ptr<Statement>> get_statement();
-    ErrorOr<std::shared_ptr<Statement>> print_statement();
-    ErrorOr<std::shared_ptr<Statement>> if_statement();
-    ErrorOr<std::shared_ptr<Statement>> expression_statement();
+    ErrorOr<std::unique_ptr<Statement>> declaration();
+    ErrorOr<std::unique_ptr<Statement>> variable_declaration();
+    ErrorOr<std::unique_ptr<Statement>> get_statement();
+    ErrorOr<std::unique_ptr<Statement>> print_statement();
+    ErrorOr<std::unique_ptr<Statement>> for_statement();
+    ErrorOr<std::unique_ptr<Statement>> if_statement();
+    ErrorOr<std::unique_ptr<Statement>> while_statement();
+    ErrorOr<std::unique_ptr<Statement>> expression_statement();
 
-    ErrorOr<std::vector<std::shared_ptr<Statement>>> get_block();
+    ErrorOr<std::vector<std::unique_ptr<Statement>>> get_block();
 
-    ErrorOr<std::shared_ptr<Expression>> get_expression();
-    ErrorOr<std::shared_ptr<Expression>> assignment();
-    ErrorOr<std::shared_ptr<Expression>> or_expression();
-    ErrorOr<std::shared_ptr<Expression>> and_expression();
-    ErrorOr<std::shared_ptr<Expression>> equality();
-    ErrorOr<std::shared_ptr<Expression>> comparison();
-    ErrorOr<std::shared_ptr<Expression>> term();
-    ErrorOr<std::shared_ptr<Expression>> factor();
-    ErrorOr<std::shared_ptr<Expression>> unary();
-    ErrorOr<std::shared_ptr<Expression>> primary();
+    ErrorOr<std::unique_ptr<Expression>> get_expression();
+    ErrorOr<std::unique_ptr<Expression>> assignment();
+    ErrorOr<std::unique_ptr<Expression>> or_expression();
+    ErrorOr<std::unique_ptr<Expression>> and_expression();
+    ErrorOr<std::unique_ptr<Expression>> equality();
+    ErrorOr<std::unique_ptr<Expression>> comparison();
+    ErrorOr<std::unique_ptr<Expression>> term();
+    ErrorOr<std::unique_ptr<Expression>> factor();
+    ErrorOr<std::unique_ptr<Expression>> unary();
+    ErrorOr<std::unique_ptr<Expression>> primary();
     
     bool check(TokenType token_type);
     bool match(auto... token_types);
 
-    ErrorOr<std::shared_ptr<Token>> consume(TokenType token_type, ErrorType error_type);
-    std::shared_ptr<Token>          advance();
-    std::shared_ptr<Token>          previous();
+    ErrorOr<std::unique_ptr<Token>> consume(TokenType token_type, ErrorType error_type);
+    std::unique_ptr<Token>          advance();
+    std::unique_ptr<Token>          previous();
 
     Token const& peek();
     

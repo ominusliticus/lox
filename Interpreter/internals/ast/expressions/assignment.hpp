@@ -8,9 +8,11 @@
 #include "internals/token.hpp"
 
 struct Assignment : public Expression {
-    Assignment(Token&& name_, std::shared_ptr<Expression> value_);
+    Assignment(Token&& name_, std::unique_ptr<Expression> value_);
+
+    ErrorOr<Object> visit(Interpreter* interpreter) final;
     
     Token                       name;
-    std::shared_ptr<Expression> value;
+    std::unique_ptr<Expression> value;
 };
 

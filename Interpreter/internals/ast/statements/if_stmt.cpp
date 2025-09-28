@@ -1,12 +1,21 @@
 #include "internals/ast/statements/if_stmt.hpp"
 
+#include "util/try.hpp"
+
 IfStmt::IfStmt(
-    std::shared_ptr<Expression> condition_,
-    std::shared_ptr<Statement> then_branch_,
-    std::shared_ptr<Statement> else_branch_
+    std::unique_ptr<Expression> condition_,
+    std::unique_ptr<Statement> then_branch_,
+    std::unique_ptr<Statement> else_branch_
 ) 
     : Statement({}, StatementType::IF)
-    , condition(condition_)
-    , then_branch(then_branch_)
-    , else_branch(else_branch_)
+    , condition(std::move(condition_))
+    , then_branch(std::move(then_branch_))
+    , else_branch(std::move(else_branch_))
 {}
+
+auto
+IfStmt::visit(
+    Interpreter* interpreter
+) -> ErrorOr<void> {
+    return TRY(interpreter->interpret(this));
+}

@@ -7,24 +7,9 @@
 #include "internals/token.hpp"
 
 #include "internals/ast/environment.hpp"
-
-#include "internals/ast/expression.hpp"
-#include "internals/ast/expressions/assignment.hpp"
-#include "internals/ast/expressions/binary.hpp"
-#include "internals/ast/expressions/expression_type.hpp"
-#include "internals/ast/expressions/grouping.hpp"
-#include "internals/ast/expressions/literal.hpp"
-#include "internals/ast/expressions/logical.hpp"
-#include "internals/ast/expressions/unary.hpp"
-#include "internals/ast/expressions/variable.hpp"
-
 #include "internals/ast/statement.hpp"
-#include "internals/ast/statements/block.hpp"
-#include "internals/ast/statements/if_stmt.hpp"
-#include "internals/ast/statements/expression_stmt.hpp"
-#include "internals/ast/statements/print_stmt.hpp"
-#include "internals/ast/statements/statement_type.hpp"
-#include "internals/ast/statements/var_decl_stmt.hpp"
+#include "internals/ast/walkers/interpreter.hpp"
+#include "internals/ast/walkers/printer.hpp"
 
 #include "util/error.hpp"
 
@@ -40,15 +25,10 @@ class AST
 public:
     AST() = default;
 
-    ErrorOr<void> interpret(std::vector<std::shared_ptr<Statement>>&& statements);
-    ErrorOr<void> interpreter(std::shared_ptr<Statement> statement);
-    ErrorOr<void> execute(std::shared_ptr<Statement> statement);
-    
-    ErrorOr<Object> interpreter(std::shared_ptr<Expression> expression);
-    ErrorOr<Object> evaluate(std::shared_ptr<Expression> expression);
-    
-    bool is_truthy(Object const& obj);
+    ErrorOr<void> interpret(std::vector<std::unique_ptr<Statement>>&& statements);
+    // ErrorOr<void> print(std::vector<std::unique_ptr<Statement>>&& statements);
 
 private:
-    static std::unique_ptr<Environment> m_environment;
+    static std::unique_ptr<Interpreter> m_interpreter;
+    static std::unique_ptr<Printer>     m_printer;
 };

@@ -5,9 +5,11 @@
 
 struct Binary : public Expression {
     Binary(
-        std::shared_ptr<Expression> left_expression_,
-        std::shared_ptr<Token>      operation_,
-        std::shared_ptr<Expression> right_expression_
+        std::unique_ptr<Expression> left_expression_,
+        std::unique_ptr<Token>      operation_,
+        std::unique_ptr<Expression> right_expression_
     );
+
+    ErrorOr<Object> visit(Interpreter* interpreter) final;
 };
 
