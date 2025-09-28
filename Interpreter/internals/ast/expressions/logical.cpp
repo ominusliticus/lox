@@ -1,9 +1,18 @@
 #include "internals/ast/expressions/logical.hpp"
 
+#include "util/try.hpp"
+
 Logical::Logical(
-    std::shared_ptr<Expression> left,
-    std::shared_ptr<Token> operation, 
-    std::shared_ptr<Expression> right
+    std::unique_ptr<Expression> left,
+    std::unique_ptr<Token> operation, 
+    std::unique_ptr<Expression> right
 )
-    : Expression(left, operation, right, ExpressionType::LOGICAL)
+    : Expression(std::move(left), std::move(operation), std::move(right), ExpressionType::LOGICAL)
 {}
+
+auto
+Logical::visit(
+    Interpreter* interpreter
+) -> ErrorOr<Object> {
+    return TRY(interpreter->interpret(this));
+}

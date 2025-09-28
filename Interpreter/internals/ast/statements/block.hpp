@@ -8,7 +8,9 @@
 
 
 struct Block : public Statement {
-    Block(std::vector<std::shared_ptr<Statement>>&& statements_);
+    Block(std::vector<std::unique_ptr<Statement>>&& statements_);
 
-    std::vector<std::shared_ptr<Statement>> statements;
+    ErrorOr<void> visit(Interpreter* interpret) final;
+
+    std::vector<std::unique_ptr<Statement>> statements;
 };

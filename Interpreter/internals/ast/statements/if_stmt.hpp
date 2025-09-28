@@ -7,12 +7,14 @@
 
 struct IfStmt : Statement {
     IfStmt(
-        std::shared_ptr<Expression> condition_,
-        std::shared_ptr<Statement> then_branch_,
-        std::shared_ptr<Statement> else_branch_
+        std::unique_ptr<Expression> condition_,
+        std::unique_ptr<Statement> then_branch_,
+        std::unique_ptr<Statement> else_branch_
     );
 
-    std::shared_ptr<Expression> condition;
-    std::shared_ptr<Statement>  then_branch;
-    std::shared_ptr<Statement>  else_branch;
+    ErrorOr<void> visit(Interpreter* interpret) final;
+
+    std::unique_ptr<Expression> condition;
+    std::unique_ptr<Statement>  then_branch;
+    std::unique_ptr<Statement>  else_branch;
 };

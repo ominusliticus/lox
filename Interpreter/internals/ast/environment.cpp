@@ -31,7 +31,7 @@ Environment::get(
 ) const -> ErrorOr<Object> {
     auto itr = m_values.find(name.lexeme);
     if (itr != m_values.end())
-        return itr->second;
+        return ErrorOr<Object>(std::move(itr->second));
     if (m_enclosing) 
         return m_enclosing->get(name);
 

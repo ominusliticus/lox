@@ -8,5 +8,7 @@
 struct Literal : public Expression {
     Literal(Object const& literal); 
 
+    ErrorOr<Object> visit(Interpreter* interpret) final;
+
     Object object;
 };

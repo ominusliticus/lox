@@ -106,15 +106,18 @@ operator<<(
 template<typename T>
 class [[nodiscard]] ErrorOr {
 public:
-    using ValueType = std::remove_reference_t<T>;
+    using ValueType = std::remove_cvref_t<T>;
 
     ErrorOr() = default;
+
+    template<typename U>
+    requires (std::is_convertible_v<std::remove_cvref_t<U>, ValueType>)
     ErrorOr(
-        T value
+        U&& value
     ) 
         : m_is_error{ false }
         , m_error{}
-        , m_value{ value }
+        , m_value(std::move(value))
     {}
 
     ErrorOr(
@@ -198,7 +201,7 @@ public:
 private:
     bool      m_is_error;
     ErrorType m_error;
-    T         m_value;
+    ValueType m_value;
 };
 
 struct Empty {};
@@ -296,6 +299,20 @@ error(
               << line << ":" 
               << column << " "
               << error_type <<  "\033[0m" << std::endl;
+}
+
+inline auto
+error(
+    int                line,
+    int                column,
+    ErrorType          error_type,
+    std::string const& error_msg
+) -> void {
+    std::cout << "\033[31m" << "[Error]" << " "
+              << line << ":" 
+              << column << " "
+              << error_type << " "
+              << error_msg << "\033[0m" << std::endl;
 }
 
 inline auto

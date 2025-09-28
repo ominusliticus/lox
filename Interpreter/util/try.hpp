@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdio.h>
+#include <cstdio>
 
 #include "util/error.hpp"
 #include "util/print.hpp"
@@ -33,7 +34,11 @@
     ({                                                                                            \
         auto xxpression{ result };                                                                \
         if (xxpression.is_error()) {                                                              \
-            error(token->line, token->column, xxpression.error());                                \
+            char error_msg[1024];                                                                 \
+            std::sprintf(                                                                         \
+                error_msg, "\033[31m[Error] %s:%s:%d\033[0m", __FILE__, #result, __LINE__         \
+            );                                                                                    \
+            error(token->line, token->column, xxpression.error(), error_msg);                     \
             return xxpression.error();                                                            \
         }                                                                                         \
         std::move(xxpression.release());                                                          \

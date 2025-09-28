@@ -117,7 +117,7 @@ auto
 Scanner::advance(
 ) -> char {
     char ch{ m_source[m_current++] };
-    if (ch != '\n') m_column = 0;
+    if (ch == '\n') m_column = 0;
     else ++m_column;
     return ch;
 }
@@ -159,8 +159,7 @@ Scanner::match(
 ) -> bool {
     if (not_end()) {
         if (m_source[m_current] == expected) {
-            ++m_current;
-            ++m_column;
+            advance();
             return true;
         }
         else return false;

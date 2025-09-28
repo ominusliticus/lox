@@ -1,9 +1,18 @@
 #include "internals/ast/statements/var_decl_stmt.hpp"
 
+#include "util/try.hpp"
+
 VarDeclStmt::VarDeclStmt(
     Token const&                name_,
-    std::shared_ptr<Expression> expression
+    std::unique_ptr<Expression> expression
 )
-    : Statement(expression, StatementType::VAR_DECL)
+    : Statement(std::move(expression), StatementType::VAR_DECL)
     , name{ name_ }
 {}
+
+auto
+VarDeclStmt::visit(
+    Interpreter* interpreter
+) -> ErrorOr<void> {
+    return TRY(interpreter->interpret(this));
+}

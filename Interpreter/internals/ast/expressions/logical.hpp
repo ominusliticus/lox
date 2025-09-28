@@ -8,8 +8,10 @@
 
 struct Logical : public Expression {
     Logical(
-        std::shared_ptr<Expression> left,
-        std::shared_ptr<Token> operation, 
-        std::shared_ptr<Expression> right
+        std::unique_ptr<Expression> left,
+        std::unique_ptr<Token> operation, 
+        std::unique_ptr<Expression> right
     );
+
+    ErrorOr<Object> visit(Interpreter* interpreter) final;
 };

@@ -5,5 +5,7 @@
 
 
 struct Grouping : public Expression {
-    Grouping(std::shared_ptr<Expression> expression_); 
+    Grouping(std::unique_ptr<Expression> expression_); 
+
+    ErrorOr<Object> visit(Interpreter* interpreter) final;
 };

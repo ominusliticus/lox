@@ -6,6 +6,8 @@
 #include "internals/ast/statement.hpp"
 
 struct PrintStmt : public Statement {
-    PrintStmt(std::shared_ptr<Expression> expression);
+    PrintStmt(std::unique_ptr<Expression> expression);
+
+    ErrorOr<void> visit(Interpreter* interpret) final;
 };
 

@@ -1,7 +1,16 @@
 #include "internals/ast/statements/expression_stmt.hpp"
 
+#include "util/try.hpp"
+
 ExpressionStmt::ExpressionStmt(
-    std::shared_ptr<Expression> expression
+    std::unique_ptr<Expression> expression
 ) 
-    : Statement(expression, StatementType::EXPRESSION)
+    : Statement(std::move(expression), StatementType::EXPRESSION)
 {}
+
+auto
+ExpressionStmt::visit(
+    Interpreter* interpreter
+) -> ErrorOr<void> {
+    return TRY(interpreter->interpret(this));
+}
