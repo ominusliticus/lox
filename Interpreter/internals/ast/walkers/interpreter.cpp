@@ -1,4 +1,5 @@
 #include "internals/ast/walkers/interpreter.hpp"
+#include "internals/ast/walkers/function.hpp"
 
 #include "internals/object.hpp"
 #include "internals/token.hpp"
@@ -8,6 +9,7 @@
 #include "internals/ast/expression.hpp"
 #include "internals/ast/expressions/assignment.hpp"
 #include "internals/ast/expressions/binary.hpp"
+#include "internals/ast/expressions/call.hpp"
 #include "internals/ast/expressions/expression_type.hpp"
 #include "internals/ast/expressions/grouping.hpp"
 #include "internals/ast/expressions/literal.hpp"
@@ -19,21 +21,30 @@
 #include "internals/ast/statements/block.hpp"
 #include "internals/ast/statements/if_stmt.hpp"
 #include "internals/ast/statements/expression_stmt.hpp"
+#include "internals/ast/statements/fun_decl_stmt.hpp"
 #include "internals/ast/statements/print_stmt.hpp"
 #include "internals/ast/statements/statement_type.hpp"
 #include "internals/ast/statements/var_decl_stmt.hpp"
 #include "internals/ast/statements/while_stmt.hpp"
 
+#include "internals/native/clock.hpp"
+
 #include "util/try.hpp"
 
-std::unique_ptr<Environment> Interpreter::m_environment = std::make_unique<Environment>();
+Interpreter::Interpreter() {
+    m_global_environment = std::make_unique<Environment>();
+    m_current_environment = m_global_environment.get();
+    m_current_environment->define("clock", std::make_unique<native::Clock>());
+}
+
+// ....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....
 
 auto
 Interpreter::interpret(
     Assignment* expression
 ) -> ErrorOr<Object> {
     auto value = TRY(evaluate(expression->value.get()));
-    TRY(m_environment->assign(expression->name.lexeme, std::move(value)));
+    TRY(m_current_environment->assign(expression->name.lexeme, std::move(value)));
     return value;
 }
 
@@ -108,6 +119,22 @@ Interpreter::interpret(
 
 // ....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....
 
+auto
+Interpreter::interpret(
+    Call* expression 
+) -> ErrorOr<Object> {
+    Token name = reinterpret_cast<Variable*>(expression->callee.get())->name;
+    Function *function = reinterpret_cast<Function*>(
+        TRY(m_current_environment->get_function(name))
+    );
+    std::vector<Object> arguments;
+    for (auto& argument : expression->arguments)
+        arguments.push_back(TRY(evaluate(argument.get())));
+    return TRY(function->operator()(this, std::move(arguments)));
+}
+
+// ....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....
+
 auto 
 Interpreter::interpret(
     Grouping* expression
@@ -165,7 +192,16 @@ auto
 Interpreter::interpret(
     Variable* expression
 ) -> ErrorOr<Object> {
-    return TRY(m_environment->get(expression->name));
+    Token const& name = expression->name;
+    std::string name_resolve = m_current_environment->check_names(name);
+    if (name_resolve == "none") return ErrorType::UNKNOWN_IDENTIFIER;
+    else if (name_resolve == "variables") return TRY(m_current_environment->get(name));
+    else {
+        Function* function = reinterpret_cast<Function*>(
+            TRY(m_current_environment->get_function(name))
+        );
+        return Object(function->to_string());
+    }
 }
 
 // ....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....
@@ -174,10 +210,10 @@ auto
 Interpreter::interpret(
     Block* statements
 ) -> ErrorOr<void> {
-    m_environment = std::make_unique<Environment>(std::move(m_environment));
-    for (auto& statement : statements->statements)
-        TRY(execute(statement.get()));
-    m_environment = std::move(*m_environment.release()).enclosing();
+    std::unique_ptr<Environment> new_envirnoment = std::make_unique<Environment>(
+        m_current_environment
+    );
+    TRY(execute_block(std::move(statements->statements), new_envirnoment.get()));
     return {};
 }
 
@@ -188,6 +224,17 @@ Interpreter::interpret(
     ExpressionStmt* statement
 ) -> ErrorOr<void> {
     TRY(evaluate(statement->expression.get()));
+    return {};
+}
+
+// ....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....
+
+auto 
+Interpreter::interpret(
+    FunDeclStmt* statement
+) -> ErrorOr<void> {
+    std::unique_ptr<Function> function = std::make_unique<Function>(statement);
+    m_current_environment->define(statement->name->lexeme, std::move(function));
     return {};
 }
 
@@ -224,7 +271,7 @@ Interpreter::interpret(
     Object value(nil);
     if (statement->expression)
         value = TRY(evaluate(statement->expression.get()));
-    m_environment->define(statement->name.lexeme, std::move(value));
+    m_current_environment->define(statement->name.lexeme, std::move(value));
     return {};
 }
 
@@ -266,6 +313,21 @@ Interpreter::execute(
 // ....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....
 
 auto
+Interpreter::execute_block(
+    const std::vector<std::unique_ptr<Statement>>& statements,
+    Environment* environment
+) -> ErrorOr<void> {
+    Environment* previous = m_current_environment;
+    m_current_environment = environment;
+    for (auto const& statement : statements)
+        TRY(statement->visit(this));
+    m_current_environment = previous;
+    return {};
+}
+
+// ....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....
+
+auto
 Interpreter::is_truthy(
     Object const& obj
 ) -> bool {
@@ -275,4 +337,12 @@ Interpreter::is_truthy(
     if (std::get_if<bool>(&obj.literal))
         return std::get<bool>(obj.literal);
     else return true;
+}
+
+// ....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....
+
+auto
+Interpreter::globals(
+) ->Environment* {
+    return m_global_environment.get();
 }

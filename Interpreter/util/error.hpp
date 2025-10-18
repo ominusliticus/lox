@@ -27,8 +27,19 @@ enum class ErrorType {
     UNKNOWN_IDENTIFIER,
     EXPECTED_ASSIGNMENT_TARGET,
     EXPECTED_RIGHT_BRACE,
-    EXPECTED_LEFT_PAREN,
-    EXPECTED_RIGHT_PAREN,
+    EXPECTED_LEFT_BRACE,
+    EXPECTED_LEFT_PAREN_IF,
+    EXPECTED_RIGHT_PAREN_IF,
+    EXPECTED_LEFT_PAREN_FOR,
+    EXPECTED_RIGHT_PAREN_FOR,
+    EXPECTED_LEFT_PAREN_WHILE,
+    EXPECTED_RIGHT_PAREN_WHILE,
+    EXPECTED_LEFT_PAREN_FUN,
+    EXPECTED_RIGHT_PAREN_FUN,
+    EXCESSIVE_ARGUMENTS,
+    EXPECTED_FUNCTION_NAME,
+    EXPECTED_PARAMETER_NAME,
+    CALL_PROHIBITED,
     END_OF_ERRORS
 };
 
@@ -90,11 +101,44 @@ operator<<(
         case ErrorType::EXPECTED_RIGHT_BRACE:
             ostream << "Expected \"}\" to end block";
             break;
-        case ErrorType::EXPECTED_LEFT_PAREN:
+        case ErrorType::EXPECTED_LEFT_BRACE:
+            ostream << "Expected \"{\" to end block";
+            break;
+        case ErrorType::EXPECTED_LEFT_PAREN_IF:
             ostream << "Expected \"(\" after \"if\"";
             break;
-        case ErrorType::EXPECTED_RIGHT_PAREN:
+        case ErrorType::EXPECTED_RIGHT_PAREN_IF:
             ostream << "Expected \")\" to end \"if\" condition";
+            break;
+        case ErrorType::EXPECTED_LEFT_PAREN_FOR:
+            ostream << "Expected \"(\" after \"for\"";
+            break;
+        case ErrorType::EXPECTED_RIGHT_PAREN_FOR:
+            ostream << "Expected \")\" to end \"for\" condition";
+            break;
+        case ErrorType::EXPECTED_LEFT_PAREN_WHILE:
+            ostream << "Expected \"(\" after \"while\"";
+            break;
+        case ErrorType::EXPECTED_RIGHT_PAREN_WHILE:
+            ostream << "Expected \")\" to end \"while\" condition";
+            break;
+        case ErrorType::EXPECTED_LEFT_PAREN_FUN:
+            ostream << "Expected \"(\" after \"fun\"";
+            break;
+        case ErrorType::EXPECTED_RIGHT_PAREN_FUN:
+            ostream << "Expected \")\" to end \"fun\" arguments";
+            break;
+        case ErrorType::EXCESSIVE_ARGUMENTS:
+            ostream << "Cannot have ore than 255 arguments";
+            break;
+        case ErrorType::EXPECTED_FUNCTION_NAME:
+            ostream << "Expected function name";
+            break;
+        case ErrorType::EXPECTED_PARAMETER_NAME:
+            ostream << "Expected parameter name";
+            break;
+        case ErrorType::CALL_PROHIBITED:
+            ostream << "Call from base Call object prohibited";
             break;
         case ErrorType::END_OF_ERRORS:
             break;

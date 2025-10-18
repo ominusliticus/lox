@@ -95,10 +95,10 @@ operator<<(
         case TokenType::BANG_EQUAL:    ostream << "!="; break;
         case TokenType::EQUAL:         ostream << "="; break;
         case TokenType::EQUAL_EQUAL:   ostream << "=="; break;
-        case TokenType::GREATER:       ostream << "<"; break;
-        case TokenType::GREATER_EQUAL: ostream << "<="; break;
-        case TokenType::LESS:          ostream << ">"; break;
-        case TokenType::LESS_EQUALS:   ostream << ">="; break;
+        case TokenType::GREATER:       ostream << ">"; break;
+        case TokenType::GREATER_EQUAL: ostream << ">="; break;
+        case TokenType::LESS:          ostream << "<"; break;
+        case TokenType::LESS_EQUALS:   ostream << "<="; break;
         case TokenType::IDENTIFIER:    ostream << "ident"; break;
         case TokenType::STRING:        ostream << "string"; break;
         case TokenType::NUMBER:        ostream << "number"; break;

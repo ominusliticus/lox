@@ -13,6 +13,8 @@
 #include "internals/scanner.hpp"
 #include "internals/token.hpp"
 
+#include "internals/ast/environment.hpp"
+
 #include "util/error.hpp"
 #include "util/print.hpp"
 #include "util/try.hpp"

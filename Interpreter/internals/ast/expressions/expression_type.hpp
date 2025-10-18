@@ -9,7 +9,8 @@ enum class ExpressionType : std::uint8_t {
     LOGICAL,
     UNARY,
     VARIABLE,
-    ASSIGNMENT
+    ASSIGNMENT,
+    CALL
 };
 
 template<typename OStream>
@@ -39,6 +40,9 @@ operator<<(
             break;
         case ExpressionType::ASSIGNMENT:
             ostream << "ASSIGNMENT";
+            break;
+        case ExpressionType::CALL:
+            ostream << "CALL";
             break;
     }
     return ostream;

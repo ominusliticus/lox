@@ -17,7 +17,10 @@
 
 // Implementing the following grammar:
 // program     -> declaration* EOF ;
-// declaration -> var_decl | statement ;
+// declaration -> func_decl | var_decl | statement ;
+// func_decl   -> "fun" function ;
+// function    -> IDENTIFIER "(" parameters? ")" stmt_block;
+// parameters  -> IDENTIFIER ( "," IDENTIFIER )* ;
 // var_decl    -> "var" IDENTIFIER ( "=" expression )? ";" ;
 // statement   -> expr_stmt | for_stmt | if_stmt | print_stmt | while_stmt | stmt_block ;
 // for_stmt    -> "for" "(" ( var_decl | expr_stmt | ";" ) expression? ";" expression? ")" statement ;
@@ -35,8 +38,10 @@
 // comparison  -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 // term        -> factor ( ( "-"| "+" ) factor )* ;
 // factor      -> unary ( ( "/" | "*" ) unary )* ;
-// unary       -> ( "!" | "-" ) unary | primary;
+// unary       -> ( "!" | "-" ) unary | call ; 
+// call        -> primary | ( "(" arguments? ")" )* ;
 // primary     -> NUMBER | STRING |"true" | "false" | "nil" | "(" expression ")" | IDENTIFIER ;
+// arguments   -> expression ( "," expression )* ;
 //
 // The grammar notation above is translated into code using the table:
 // term        code to match and consume a token
@@ -67,6 +72,7 @@ private:
     ErrorOr<std::unique_ptr<Statement>> if_statement();
     ErrorOr<std::unique_ptr<Statement>> while_statement();
     ErrorOr<std::unique_ptr<Statement>> expression_statement();
+    ErrorOr<std::unique_ptr<Statement>> function(std::string kind);
 
     ErrorOr<std::vector<std::unique_ptr<Statement>>> get_block();
 
@@ -79,7 +85,10 @@ private:
     ErrorOr<std::unique_ptr<Expression>> term();
     ErrorOr<std::unique_ptr<Expression>> factor();
     ErrorOr<std::unique_ptr<Expression>> unary();
+    ErrorOr<std::unique_ptr<Expression>> call();
     ErrorOr<std::unique_ptr<Expression>> primary();
+
+    ErrorOr<std::unique_ptr<Expression>> finish_call(std::unique_ptr<Expression> callee);
     
     bool check(TokenType token_type);
     bool match(auto... token_types);
