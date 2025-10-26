@@ -1,5 +1,6 @@
 #include "internals/ast/walkers/interpreter.hpp"
 #include "internals/ast/walkers/function.hpp"
+#include "internals/ast/walkers/return.hpp"
 
 #include "internals/object.hpp"
 #include "internals/token.hpp"
@@ -23,6 +24,7 @@
 #include "internals/ast/statements/expression_stmt.hpp"
 #include "internals/ast/statements/fun_decl_stmt.hpp"
 #include "internals/ast/statements/print_stmt.hpp"
+#include "internals/ast/statements/return_stmt.hpp"
 #include "internals/ast/statements/statement_type.hpp"
 #include "internals/ast/statements/var_decl_stmt.hpp"
 #include "internals/ast/statements/while_stmt.hpp"
@@ -128,9 +130,15 @@ Interpreter::interpret(
         TRY(m_current_environment->get_function(name))
     );
     std::vector<Object> arguments;
-    for (auto& argument : expression->arguments)
+    for (auto const& argument : expression->arguments)
         arguments.push_back(TRY(evaluate(argument.get())));
-    return TRY(function->operator()(this, std::move(arguments)));
+    // Intentionally using exceptions to catch the return value statement execution
+    try {
+        TRY(function->operator()(this, arguments));
+    } catch (Return return_value) {
+        return return_value.value();
+    }
+    return {};
 }
 
 // ....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....
@@ -192,16 +200,17 @@ auto
 Interpreter::interpret(
     Variable* expression
 ) -> ErrorOr<Object> {
-    Token const& name = expression->name;
-    std::string name_resolve = m_current_environment->check_names(name);
-    if (name_resolve == "none") return ErrorType::UNKNOWN_IDENTIFIER;
-    else if (name_resolve == "variables") return TRY(m_current_environment->get(name));
-    else {
-        Function* function = reinterpret_cast<Function*>(
-            TRY(m_current_environment->get_function(name))
-        );
-        return Object(function->to_string());
-    }
+    return TRY(m_current_environment->get(expression->name));
+}
+
+// ....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....
+
+auto
+Interpreter::evaluate(
+    Expression* expression
+) -> ErrorOr<Object> {
+    Object obj = TRY(expression->visit(this));
+    return obj;
 }
 
 // ....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....
@@ -258,7 +267,7 @@ Interpreter::interpret(
 ) -> ErrorOr<void> {
     // Variable declarations need to scoped in switch statement
     Object object = TRY(evaluate(statement->expression.get()));
-    print(object);
+    print("\033[35m", object, "\033[0m");
     return {};
 }
 
@@ -290,14 +299,17 @@ Interpreter::interpret(
     return {};
 }
 
-// ....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....
+// ....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo...
 
 auto
-Interpreter::evaluate(
-    Expression* expression
-) -> ErrorOr<Object> {
-    auto obj = TRY(expression->visit(this));
-    return obj;
+Interpreter::interpret(
+    ReturnStmt* statement
+) -> ErrorOr<void> {
+    Object value = Object(nil);
+    if (statement->value) value = TRY(evaluate(statement->value.get()));
+
+    throw Return(std::move(value));
+    return {};
 }
 
 // ....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....
@@ -345,4 +357,12 @@ auto
 Interpreter::globals(
 ) ->Environment* {
     return m_global_environment.get();
+}
+
+// ....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....
+
+auto
+Interpreter::current_environment(
+) ->Environment* {
+    return m_current_environment;
 }

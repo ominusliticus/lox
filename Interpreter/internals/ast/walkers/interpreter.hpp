@@ -11,23 +11,25 @@
 class [[nodiscard]] Interpreter {
 public:
     Interpreter();
+    virtual ~Interpreter() = default;
 
-    ErrorOr<Object> interpret(Assignment* expression);
-    ErrorOr<Object> interpret(Binary* expression);
-    ErrorOr<Object> interpret(Call* expression);
-    ErrorOr<Object> interpret(Grouping* expression);
-    ErrorOr<Object> interpret(Literal* expression);
-    ErrorOr<Object> interpret(Logical* expression);
-    ErrorOr<Object> interpret(Unary* expression);
-    ErrorOr<Object> interpret(Variable* expression);
+    virtual ErrorOr<Object> interpret(Assignment* expression);
+    virtual ErrorOr<Object> interpret(Binary* expression);
+    virtual ErrorOr<Object> interpret(Call* expression);
+    virtual ErrorOr<Object> interpret(Grouping* expression);
+    virtual ErrorOr<Object> interpret(Literal* expression);
+    virtual ErrorOr<Object> interpret(Logical* expression);
+    virtual ErrorOr<Object> interpret(Unary* expression);
+    virtual ErrorOr<Object> interpret(Variable* expression);
 
-    ErrorOr<void> interpret(Block* statements);
-    ErrorOr<void> interpret(IfStmt* statement);
-    ErrorOr<void> interpret(ExpressionStmt* statement);
-    ErrorOr<void> interpret(FunDeclStmt* statement);
-    ErrorOr<void> interpret(PrintStmt* statement);
-    ErrorOr<void> interpret(VarDeclStmt* statement);
-    ErrorOr<void> interpret(WhileStmt* statement);
+    virtual ErrorOr<void> interpret(Block* statements);
+    virtual ErrorOr<void> interpret(IfStmt* statement);
+    virtual ErrorOr<void> interpret(ExpressionStmt* statement);
+    virtual ErrorOr<void> interpret(FunDeclStmt* statement);
+    virtual ErrorOr<void> interpret(PrintStmt* statement);
+    virtual ErrorOr<void> interpret(VarDeclStmt* statement);
+    virtual ErrorOr<void> interpret(WhileStmt* statement);
+    virtual ErrorOr<void> interpret(ReturnStmt* statement);
 
     ErrorOr<Object> evaluate(Expression* expression);
     ErrorOr<void>   execute(Statement* statement);
@@ -39,6 +41,7 @@ public:
     bool is_truthy(Object const& obj);
 
     Environment* globals();
+    Environment* current_environment();
 
 private:
     std::unique_ptr<Environment> m_global_environment;
