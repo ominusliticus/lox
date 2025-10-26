@@ -27,32 +27,31 @@ static AST ast;
 // Reads and lexes file
 auto 
 run(
-    std::string source
+    std::string source,
+    std::string const filename = ""
 ) -> ErrorOr<void> {
-    Scanner            scanner(source);
+    Scanner            scanner(filename, source);
     std::vector<Token> tokens{ TRY(scanner.scan_tokens()) };
     Parser             parser(std::move(tokens));
     auto               statements{ TRY(parser.parse()) };
-    // std::stringstream  ss;
-    // visitor.printer(ss, expression);
-    // print(ss.str());
     TRY(ast.interpret(std::move(statements)));
+    // TRY(ast.print(std::move(statements)));
     return {};
 }
 
 // Runs lox interpreter on file
 auto 
 run_file(
-    char const *file_name
+    char const *filename
 ) -> ErrorOr<void> {
-    std::filesystem::path file_path{file_name};
+    std::filesystem::path file_path{filename};
     if (std::filesystem::exists(file_path)) {
         std::fstream file_stream{ file_path };
         auto size{ std::filesystem::file_size(file_path) }; 
         file_stream.seekg(0);
         std::string source(size, '\0');
         file_stream.read(&source[0], size);
-        return run(source);
+        return run(source, filename);
     } else {
         return ErrorType::FILE_NOT_FOUND;
     }

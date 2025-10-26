@@ -16,7 +16,7 @@
 class Scanner {
 public:
     Scanner() = default;
-    Scanner(std::string source) ;
+    Scanner(std::string const filename, std::string source);
     
     // Disable copying and moving
     Scanner(Scanner const&) = delete;
@@ -46,6 +46,7 @@ public:
     void process_identifier();
 
 private:
+    std::string        m_filename;
     std::string        m_source;
     std::vector<Token> m_tokens{};
     std::size_t        m_start{ 0 };

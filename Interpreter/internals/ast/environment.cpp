@@ -2,6 +2,43 @@
 
 #include "internals/ast/environment.hpp"
 
+Environment::Environment(
+    std::string const& name
+) 
+    : m_enclosing(nullptr)
+    , m_recursion_depth(0)
+    , m_name(name)
+{}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+Environment::Environment(
+    Environment* enclosing,
+    std::string const& name
+) 
+    : m_enclosing(enclosing)
+    , m_recursion_depth((enclosing->m_recursion_depth) + 1)
+    , m_name(enclosing->m_name + " -> (" + name + ")" + std::to_string(m_recursion_depth))
+{}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Environment::values(
+) -> Environment::VariableMap const& {
+    return m_values;
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Environment::functions(
+) -> Environment::FunctionMap const& {
+    return m_functions;
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
 auto
 Environment::define(
     std::string const& name,
@@ -43,9 +80,10 @@ auto
 Environment::get(
     Token const& name
 ) const -> ErrorOr<Object> {
+    // print("(value)", name.lexeme, ":", m_name);
     auto itr = m_values.find(name.lexeme);
     if (itr != m_values.end())
-        return ErrorOr<Object>(std::move(itr->second));
+        return ErrorOr<Object>(itr->second);
     if (m_enclosing) 
         return m_enclosing->get(name);
 
@@ -58,10 +96,11 @@ auto
 Environment::get_function(
     Token const& name
 ) const -> ErrorOr<Call*> {
+    // print("(function)", name.lexeme, ":", m_name);
     auto itr = m_functions.find(name.lexeme);
     if (itr != m_functions.end())
-        return ErrorOr<Call*>(std::move(itr->second.get()));
-    if (m_enclosing) 
+        return ErrorOr<Call*>(itr->second.get());
+    if (m_enclosing)
         return m_enclosing->get_function(name);
 
     return ErrorType::UNKNOWN_IDENTIFIER;
@@ -88,4 +127,20 @@ Environment::check_names(
 auto Environment::enclosing(
 ) -> Environment* {
     return m_enclosing;
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Environment::count(
+) -> std::size_t { 
+    return m_values.size() + m_functions.size(); 
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Environment::depth(
+) -> int { 
+    return m_recursion_depth;
 }

@@ -4,16 +4,17 @@
 #include <cstdio>
 
 #include "util/error.hpp"
+#include "util/decorate_error.hpp"
 #include "util/print.hpp"
 
 
 // TODO: Add error message to error message, once me move to fmtlib
 // TODO: Add try clause for REPL: shouldn't fail if user makes a mistake
+            // error(__FILE__, __LINE__, #result, xxpression.error());                      
 #define TRY(result)                                                                               \
     ({                                                                                            \
         auto xxpression{ result };                                                                \
         if (xxpression.is_error()) {                                                              \
-            error(__FILE__, __LINE__, #result, xxpression.error());                               \
             return xxpression.error();                                                            \
         }                                                                                         \
         std::move(xxpression.release());                                                          \
@@ -30,6 +31,7 @@
         std::move(xxpression.release());                                                          \
     })
 
+// We need to increment the lexeme_count by one since floor(log10(2)) = 0 but has one digit
 #define TRY_LOX(result, token)                                                                    \
     ({                                                                                            \
         auto xxpression{ result };                                                                \
@@ -38,7 +40,9 @@
             std::sprintf(                                                                         \
                 error_msg, "\033[31m[Error] %s:%s:%d\033[0m", __FILE__, #result, __LINE__         \
             );                                                                                    \
-            error(token->line, token->column, xxpression.error(), error_msg);                     \
+            print(*token);                                                                        \
+            std::size_t lexeme_size = token->lexeme.size();                                       \
+            decorate_error(token->filename, token->line, token->column, lexeme_size, error_msg);  \
             return xxpression.error();                                                            \
         }                                                                                         \
         std::move(xxpression.release());                                                          \

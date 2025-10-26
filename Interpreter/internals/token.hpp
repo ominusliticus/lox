@@ -29,6 +29,7 @@ enum class TokenType {
     LESS_EQUALS,
     // Literals
     IDENTIFIER,
+    FUN_IDENTIFIER,
     STRING,
     NUMBER,
     // Keyword
@@ -57,13 +58,15 @@ struct Token {
         std::string lexeme_,
         Object      literal_,
         int         line_,
-        int         column_
+        int         column_,
+        std::string filename_
     ) 
         : type(type_)
         , lexeme(lexeme_)
         , literal(literal_)
         , line(line_)
         , column(column_)
+        , filename(filename_)
     {}
 
     TokenType   type;
@@ -71,6 +74,7 @@ struct Token {
     Object      literal;
     int         line;
     int         column;
+    std::string filename;
 };
 
 template<class OStream>
@@ -80,45 +84,46 @@ operator<<(
     TokenType type
 ) -> OStream& {
     switch (type) {
-        case TokenType::LEFT_PAREN:    ostream << "("; break;
-        case TokenType::RIGHT_PAREN:   ostream << ")"; break;
-        case TokenType::LEFT_BRACE:    ostream << "{"; break;
-        case TokenType::RIGHT_BRACE:   ostream << "}"; break;
-        case TokenType::COMMA:         ostream << ","; break;
-        case TokenType::DOT:           ostream << "."; break;
-        case TokenType::MINUS:         ostream << "-"; break;
-        case TokenType::PLUS:          ostream << "+"; break;
-        case TokenType::SEMICOLON:     ostream << ";"; break;
-        case TokenType::SLASH:         ostream << "/"; break;
-        case TokenType::STAR:          ostream << "*"; break;
-        case TokenType::BANG:          ostream << "!"; break;
-        case TokenType::BANG_EQUAL:    ostream << "!="; break;
-        case TokenType::EQUAL:         ostream << "="; break;
-        case TokenType::EQUAL_EQUAL:   ostream << "=="; break;
-        case TokenType::GREATER:       ostream << ">"; break;
-        case TokenType::GREATER_EQUAL: ostream << ">="; break;
-        case TokenType::LESS:          ostream << "<"; break;
-        case TokenType::LESS_EQUALS:   ostream << "<="; break;
-        case TokenType::IDENTIFIER:    ostream << "ident"; break;
-        case TokenType::STRING:        ostream << "string"; break;
-        case TokenType::NUMBER:        ostream << "number"; break;
-        case TokenType::AND:           ostream << "&&"; break;
-        case TokenType::CLASS:         ostream << "class"; break;
-        case TokenType::ELSE:          ostream << "else"; break;
-        case TokenType::FALSE:         ostream << "false"; break;
-        case TokenType::FUN:           ostream << "func"; break;
-        case TokenType::FOR:           ostream << "for"; break;
-        case TokenType::IF:            ostream << "if"; break;
-        case TokenType::NIL:           ostream << "NIL"; break;
-        case TokenType::OR:            ostream << "||"; break;
-        case TokenType::PRINT:         ostream << "print"; break;
-        case TokenType::RETURN:        ostream << "return"; break;
-        case TokenType::SUPER:         ostream << "super"; break;
-        case TokenType::THIS:          ostream << "this"; break;
-        case TokenType::TRUE:          ostream << "true"; break;
-        case TokenType::VAR:           ostream << "var"; break;
-        case TokenType::WHILE:         ostream << "while"; break;
-        case TokenType::ENDOFFILE:     ostream << "EOF"; break;
+        case TokenType::LEFT_PAREN:     ostream << "("; break;
+        case TokenType::RIGHT_PAREN:    ostream << ")"; break;
+        case TokenType::LEFT_BRACE:     ostream << "{"; break;
+        case TokenType::RIGHT_BRACE:    ostream << "}"; break;
+        case TokenType::COMMA:          ostream << ","; break;
+        case TokenType::DOT:            ostream << "."; break;
+        case TokenType::MINUS:          ostream << "-"; break;
+        case TokenType::PLUS:           ostream << "+"; break;
+        case TokenType::SEMICOLON:      ostream << ";"; break;
+        case TokenType::SLASH:          ostream << "/"; break;
+        case TokenType::STAR:           ostream << "*"; break;
+        case TokenType::BANG:           ostream << "!"; break;
+        case TokenType::BANG_EQUAL:     ostream << "!="; break;
+        case TokenType::EQUAL:          ostream << "="; break;
+        case TokenType::EQUAL_EQUAL:    ostream << "=="; break;
+        case TokenType::GREATER:        ostream << ">"; break;
+        case TokenType::GREATER_EQUAL:  ostream << ">="; break;
+        case TokenType::LESS:           ostream << "<"; break;
+        case TokenType::LESS_EQUALS:    ostream << "<="; break;
+        case TokenType::IDENTIFIER:     ostream << "ident"; break;
+        case TokenType::FUN_IDENTIFIER: ostream << "fun_ident"; break;
+        case TokenType::STRING:         ostream << "string"; break;
+        case TokenType::NUMBER:         ostream << "number"; break;
+        case TokenType::AND:            ostream << "&&"; break;
+        case TokenType::CLASS:          ostream << "class"; break;
+        case TokenType::ELSE:           ostream << "else"; break;
+        case TokenType::FALSE:          ostream << "false"; break;
+        case TokenType::FUN:            ostream << "func"; break;
+        case TokenType::FOR:            ostream << "for"; break;
+        case TokenType::IF:             ostream << "if"; break;
+        case TokenType::NIL:            ostream << "NIL"; break;
+        case TokenType::OR:             ostream << "||"; break;
+        case TokenType::PRINT:          ostream << "print"; break;
+        case TokenType::RETURN:         ostream << "return"; break;
+        case TokenType::SUPER:          ostream << "super"; break;
+        case TokenType::THIS:           ostream << "this"; break;
+        case TokenType::TRUE:           ostream << "true"; break;
+        case TokenType::VAR:            ostream << "var"; break;
+        case TokenType::WHILE:          ostream << "while"; break;
+        case TokenType::ENDOFFILE:      ostream << "EOF"; break;
     }
     return ostream;
 }

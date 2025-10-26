@@ -7,8 +7,9 @@
 
 // .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
 
-Scanner::Scanner(std::string source) 
-    : m_source(source)
+Scanner::Scanner(std::string const filename, std::string source) 
+    : m_filename(filename)
+    , m_source(source)
 {}
 
 // .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
@@ -26,7 +27,8 @@ Scanner::scan_tokens(
         "",
         Object(),
         m_line,
-        0
+        0,
+        m_filename
     );
     return m_tokens;
 }
@@ -107,7 +109,8 @@ Scanner::add_token(
         m_source.substr(m_start, m_current - m_start),
         literal,
         m_line,
-        m_column - (m_current - m_start) // Get start of word
+        m_column - (m_current - m_start), // Get start of word
+        m_filename
     );
 }
 

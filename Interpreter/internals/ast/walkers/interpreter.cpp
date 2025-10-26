@@ -32,9 +32,10 @@
 #include "internals/native/clock.hpp"
 
 #include "util/try.hpp"
+#include "util/colors.hpp"
 
 Interpreter::Interpreter() {
-    m_global_environment = std::make_unique<Environment>();
+    m_global_environment = std::make_unique<Environment>("GLOBAL");
     m_current_environment = m_global_environment.get();
     m_current_environment->define("clock", std::make_unique<native::Clock>());
 }
@@ -125,6 +126,10 @@ auto
 Interpreter::interpret(
     Call* expression 
 ) -> ErrorOr<Object> {
+    // There seems to be a bug where, during the function call, the catching the exception leaves
+    // the pointer to the current environmnet dangling. Therefore we explicitly store and restore
+    // after function execution,here
+    Environment* stored_environment = m_current_environment;
     Token name = reinterpret_cast<Variable*>(expression->callee.get())->name;
     Function *function = reinterpret_cast<Function*>(
         TRY(m_current_environment->get_function(name))
@@ -134,10 +139,12 @@ Interpreter::interpret(
         arguments.push_back(TRY(evaluate(argument.get())));
     // Intentionally using exceptions to catch the return value statement execution
     try {
-        TRY(function->operator()(this, arguments));
+        TRY(function->operator()(this, std::move(arguments)));
     } catch (Return return_value) {
+        m_current_environment = stored_environment;
         return return_value.value();
     }
+    m_current_environment = stored_environment;
     return {};
 }
 
@@ -220,7 +227,8 @@ Interpreter::interpret(
     Block* statements
 ) -> ErrorOr<void> {
     std::unique_ptr<Environment> new_envirnoment = std::make_unique<Environment>(
-        m_current_environment
+        m_current_environment,
+        "BLOCK"
     );
     TRY(execute_block(std::move(statements->statements), new_envirnoment.get()));
     return {};
@@ -331,9 +339,13 @@ Interpreter::execute_block(
 ) -> ErrorOr<void> {
     Environment* previous = m_current_environment;
     m_current_environment = environment;
+    // print(Color::YELLOW, previous->m_name, Color::DEFAULT);
+    // print(Color::BLUE, m_current_environment->m_name, Color::DEFAULT);
     for (auto const& statement : statements)
         TRY(statement->visit(this));
+    // print(Color::GREEN, m_current_environment->m_name, Color::DEFAULT);
     m_current_environment = previous;
+    // print(Color::RED, m_current_environment->m_name, Color::DEFAULT);
     return {};
 }
 

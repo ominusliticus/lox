@@ -10,12 +10,20 @@
 #include "internals/object.hpp"
 #include "internals/token.hpp"
 
+#include "internals/ast/ast_forward.hpp"
 #include "internals/ast/expressions/call.hpp"
 
 class Environment {
 public:
+    using VariableMap = std::unordered_map<std::string, Object>;
+    using FunctionMap = std::unordered_map<std::string, std::unique_ptr<Call>>;
+
     Environment() = default;
-    Environment(Environment* enclosing) : m_enclosing(enclosing) {};
+    Environment(std::string const& name);
+    Environment(Environment* enclosing, std::string const& name);
+
+    VariableMap const& values();
+    FunctionMap const& functions();
 
     void define(std::string const& name, Object&& value);
     void define(std::string const& name, std::unique_ptr<Call> value);
@@ -34,8 +42,15 @@ public:
     std::string check_names(Token const& name) const;
     Environment* enclosing();
 
+    std::size_t count();
+    int depth();
+
+    friend class Interpreter;
+
 private:
-    Environment*                            m_enclosing;
-    std::unordered_map<std::string, Object> m_values;
-    std::unordered_map<std::string, std::unique_ptr<Call>>  m_functions;
+    Environment* m_enclosing = nullptr;
+    int m_recursion_depth = -1;
+    std::string m_name;
+    VariableMap  m_values;
+    FunctionMap  m_functions;
 };

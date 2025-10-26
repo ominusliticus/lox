@@ -16,6 +16,7 @@ struct ExpressionStmt;
 struct IfStmt;
 struct FunDeclStmt;
 struct PrintStmt;
+struct ReturnStmt;
 struct VarDeclStmt;
 struct WhileStmt;
 

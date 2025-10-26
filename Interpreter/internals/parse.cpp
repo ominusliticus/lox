@@ -22,6 +22,7 @@
 #include "internals/ast/statements/fun_decl_stmt.hpp"
 #include "internals/ast/statements/expression_stmt.hpp"
 #include "internals/ast/statements/print_stmt.hpp"
+#include "internals/ast/statements/return_stmt.hpp"
 #include "internals/ast/statements/statement_type.hpp"
 #include "internals/ast/statements/var_decl_stmt.hpp"
 #include "internals/ast/statements/while_stmt.hpp"
@@ -70,13 +71,14 @@ Parser::variable_declaration(
     Token name = *TRY_LOX(
         consume(TokenType::IDENTIFIER, ErrorType::EXPECTED_VARIABLE_NAME), previous()
     );
-    std::unique_ptr<Expression> initiailizer;
+    std::unique_ptr<Expression> initializer;
     if (match(TokenType::EQUAL)) {
-        initiailizer = TRY_LOX(get_expression(), previous());
+        if (peek_next().type == TokenType::LEFT_PAREN) initializer = TRY_LOX(call(), previous());
+        else initializer = TRY_LOX(get_expression(), previous());
     }
     TRY_LOX(consume(TokenType::SEMICOLON, ErrorType::EXPECTED_SEMICOLON), previous());
     return ErrorOr<std::unique_ptr<Statement>>(
-        std::make_unique<VarDeclStmt>(name, std::move(initiailizer))
+        std::make_unique<VarDeclStmt>(name, std::move(initializer))
     );
 }
 
@@ -88,6 +90,7 @@ Parser::get_statement(
     if (match(TokenType::FOR)) return TRY_LOX(for_statement(), previous());
     if (match(TokenType::IF)) return TRY_LOX(if_statement(), previous());
     if (match(TokenType::PRINT)) return TRY_LOX(print_statement(), previous());
+    if (match(TokenType::RETURN)) return TRY_LOX(return_statement(), previous());
     if (match(TokenType::WHILE)) return TRY_LOX(while_statement(), previous());
     if (match(TokenType::LEFT_BRACE)) {
         std::vector<std::unique_ptr<Statement>> stmts = TRY_LOX(get_block(), previous());
@@ -114,6 +117,8 @@ Parser::get_block(
 
 // .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
 
+// TODO: Allow for passing arguments separated by commas
+//       The grammar seems to allow this, but we haven't enabled it
 auto
 Parser::print_statement(
 ) -> ErrorOr<std::unique_ptr<Statement>> {
@@ -198,6 +203,20 @@ Parser::while_statement(
 // .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
 
 auto
+Parser::return_statement(
+) -> ErrorOr<std::unique_ptr<Statement>> {
+    std::unique_ptr<Token> keyword = previous();
+    std::unique_ptr<Expression> value;
+    if (!check(TokenType::SEMICOLON)) value = TRY_LOX(get_expression(), previous());
+    TRY_LOX(consume(TokenType::SEMICOLON, ErrorType::EXPECTED_SEMICOLON), previous());
+    return ErrorOr<std::unique_ptr<Statement>>(
+        std::make_unique<ReturnStmt>(std::move(keyword), std::move(value))
+    );
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
 Parser::expression_statement(
 ) -> ErrorOr<std::unique_ptr<Statement>> {
     std::unique_ptr<Expression> expr = TRY_LOX(get_expression(), previous());
@@ -253,7 +272,7 @@ Parser::assignment(
         std::unique_ptr<Token>      equals = previous();
         std::unique_ptr<Expression> value  = TRY_LOX(assignment(), previous());
         if (left_expression->expression_type == ExpressionType::VARIABLE) {
-            Token name = static_cast<Variable*>(value.get())->name;
+            Token name = static_cast<Variable*>(left_expression.get())->name;
             std::unique_ptr<Assignment> result = std::make_unique<Assignment>(
                 std::move(name), std::move(value)
             );
@@ -385,8 +404,9 @@ Parser::call(
 ) -> ErrorOr<std::unique_ptr<Expression>> {
     std::unique_ptr<Expression> expression = TRY_LOX(primary(), previous());
     while(true) {
-        if (match(TokenType::LEFT_PAREN)) 
+        if (match(TokenType::LEFT_PAREN)) {
             expression = TRY_LOX(finish_call(std::move(expression)), previous());
+        }
         else break;
     }
     return expression;
@@ -423,7 +443,7 @@ Parser::primary(
 auto
 Parser::finish_call(
     std::unique_ptr<Expression> callee
-) -> ErrorOr<std::unique_ptr<Expression>> {
+) -> ErrorOr<std::unique_ptr<Call>> {
     std::vector<std::unique_ptr<Expression>> arguments;
     if (!check(TokenType::RIGHT_PAREN)) {
         do {
@@ -433,9 +453,7 @@ Parser::finish_call(
     std::unique_ptr<Token> paren = TRY_LOX(
         consume(TokenType::RIGHT_PAREN, ErrorType::EXPECTED_RIGHT_PAREN_FUN), previous()
     );
-    return ErrorOr<std::unique_ptr<Expression>>(
-        std::make_unique<Call>(std::move(callee), std::move(paren), std::move(arguments))
-    );
+    return std::make_unique<Call>(std::move(callee), std::move(paren), std::move(arguments));
 }
 
 // .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
@@ -485,6 +503,14 @@ auto
 Parser::peek(
 ) -> Token const& {
     return m_tokens[m_current];
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Parser::peek_next(
+) -> Token const& {
+    return m_tokens[m_current + 1];
 }
 
 // .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....

@@ -22,11 +22,13 @@
 // function    -> IDENTIFIER "(" parameters? ")" stmt_block;
 // parameters  -> IDENTIFIER ( "," IDENTIFIER )* ;
 // var_decl    -> "var" IDENTIFIER ( "=" expression )? ";" ;
-// statement   -> expr_stmt | for_stmt | if_stmt | print_stmt | while_stmt | stmt_block ;
+// statement   -> expr_stmt | for_stmt | if_stmt | print_stmt |return_stmt 
+//                          | while_stmt | stmt_block ;
 // for_stmt    -> "for" "(" ( var_decl | expr_stmt | ";" ) expression? ";" expression? ")" statement ;
 // if_stmt     -> "if" "(" expression ")" statement ( "else" statement)? ;
 // while_stmt  -> "while" "(" expression ")" statement ;
 // print_stmt  -> "print" expression ";" ;
+// return_stmt -> "return" expression? ";" ;
 // expr_stmt   -> expression ";" ;
 // stmt_block  -> "{" declaration* "}";
 // expression  -> assignment | expr_block ;
@@ -72,6 +74,7 @@ private:
     ErrorOr<std::unique_ptr<Statement>> if_statement();
     ErrorOr<std::unique_ptr<Statement>> while_statement();
     ErrorOr<std::unique_ptr<Statement>> expression_statement();
+    ErrorOr<std::unique_ptr<Statement>> return_statement();
     ErrorOr<std::unique_ptr<Statement>> function(std::string kind);
 
     ErrorOr<std::vector<std::unique_ptr<Statement>>> get_block();
@@ -88,7 +91,7 @@ private:
     ErrorOr<std::unique_ptr<Expression>> call();
     ErrorOr<std::unique_ptr<Expression>> primary();
 
-    ErrorOr<std::unique_ptr<Expression>> finish_call(std::unique_ptr<Expression> callee);
+    ErrorOr<std::unique_ptr<Call>> finish_call(std::unique_ptr<Expression> callee);
     
     bool check(TokenType token_type);
     bool match(auto... token_types);
@@ -98,6 +101,7 @@ private:
     std::unique_ptr<Token>          previous();
 
     Token const& peek();
+    Token const& peek_next();
     
     bool not_end();
     bool is_end();

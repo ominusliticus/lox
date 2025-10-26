@@ -26,7 +26,7 @@ public:
     AST() = default;
 
     ErrorOr<void> interpret(std::vector<std::unique_ptr<Statement>>&& statements);
-    // ErrorOr<void> print(std::vector<std::unique_ptr<Statement>>&& statements);
+    ErrorOr<void> print(std::vector<std::unique_ptr<Statement>>&& statements);
 
 private:
     static std::unique_ptr<Interpreter> m_interpreter;

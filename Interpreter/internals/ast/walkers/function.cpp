@@ -22,10 +22,11 @@ Function::operator()(
     std::vector<Object>&& values
 ) -> ErrorOr<Object> {
     std::unique_ptr<Environment> new_environment = std::make_unique<Environment>(
-        interpreter->globals()
+        interpreter->globals(),
+        "FUNCTION:" + m_declaration->name->lexeme
     );
     for (std::size_t n = 0; n < values.size(); ++n)
         new_environment->define(m_declaration->parameters[n]->lexeme, std::move(values[n]));
     TRY(interpreter->execute_block(std::move(m_declaration->body), new_environment.get()));
-    return {};
+    return Object(nil);
 }
