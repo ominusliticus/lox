@@ -9,10 +9,12 @@
 #include "util/try.hpp"
 
 Function::Function(
-    FunDeclStmt* declaration
+    FunDeclStmt* declaration,
+    Environment* closure
 ) 
     : Call({}, {}, {})
     , m_declaration(declaration)
+    , m_closure(closure)
 {}
 
 
@@ -22,7 +24,7 @@ Function::operator()(
     std::vector<Object>&& values
 ) -> ErrorOr<Object> {
     std::unique_ptr<Environment> new_environment = std::make_unique<Environment>(
-        interpreter->globals(),
+        m_closure,
         "FUNCTION:" + m_declaration->name->lexeme
     );
     for (std::size_t n = 0; n < values.size(); ++n)

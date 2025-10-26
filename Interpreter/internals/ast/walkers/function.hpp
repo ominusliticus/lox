@@ -6,7 +6,7 @@
 #include "internals/ast/statements/fun_decl_stmt.hpp"
 
 struct Function : public Call {
-    Function(FunDeclStmt* declaration);
+    Function(FunDeclStmt* declaration, Environment* closure);
 
     virtual ErrorOr<Object> operator()(
         Interpreter* interpreter,
@@ -18,4 +18,5 @@ struct Function : public Call {
 
 private:
     FunDeclStmt* m_declaration;
+    Environment* m_closure;
 };

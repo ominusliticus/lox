@@ -250,7 +250,9 @@ auto
 Interpreter::interpret(
     FunDeclStmt* statement
 ) -> ErrorOr<void> {
-    std::unique_ptr<Function> function = std::make_unique<Function>(statement);
+    std::unique_ptr<Function> function = std::make_unique<Function>(
+        statement, m_current_environment
+    );
     m_current_environment->define(statement->name->lexeme, std::move(function));
     return {};
 }
@@ -323,7 +325,7 @@ Interpreter::interpret(
 // ....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....
 
 auto
-Interpreter::execute(
+Interpreter::execute        (
     Statement* statement
 ) -> ErrorOr<void> {
     TRY(statement->visit(this));

@@ -45,7 +45,7 @@ public:
 
 private:
     std::unique_ptr<Environment> m_global_environment;
-    Environment* m_current_environment;
+    Environment*                 m_current_environment;
 
     friend AST;
 };
