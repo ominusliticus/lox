@@ -1,4 +1,7 @@
+#include "util/error.hpp"
+#include "util/print.hpp"
 #include "util/try.hpp"
+#include <cstddef>
 
 #include "internals/ast/environment.hpp"
 
@@ -70,8 +73,32 @@ Environment::assign(
     }
     if (m_enclosing)
         return m_enclosing->assign(name, std::move(value));
-
     return ErrorType::UNKNOWN_IDENTIFIER;
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Environment::assign_at(
+    int distance,
+    Token const& name,
+    Object&& value
+) -> ErrorOr<void> {
+    TRY(ancestor(distance))->m_values[name.lexeme] = std::move(value);
+    return {};
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Environment::ancestor(
+    int distance
+) const -> ErrorOr<Environment*>  {
+    Environment* env = const_cast<Environment*>(this);
+    for (int i = 0; i < distance; ++i)
+        env = env->enclosing();
+    if (env) return env;
+    return ErrorType::BAD_ENVIRONMENT;
 }
 
 // .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
@@ -80,7 +107,6 @@ auto
 Environment::get(
     Token const& name
 ) const -> ErrorOr<Object> {
-    // print("(value)", name.lexeme, ":", m_name);
     auto itr = m_values.find(name.lexeme);
     if (itr != m_values.end())
         return ErrorOr<Object>(itr->second);
@@ -102,7 +128,21 @@ Environment::get_function(
         return ErrorOr<Call*>(itr->second.get());
     if (m_enclosing)
         return m_enclosing->get_function(name);
+    return ErrorType::UNKNOWN_IDENTIFIER;
+}
 
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Environment::get_at(
+    int distance,
+    std::string const& name
+) const -> ErrorOr<Object> {
+    auto env = TRY(ancestor(distance));
+    auto values = env->m_values;
+    if (auto itr = values.find(name); itr != values.end())
+        return itr->second;
+    
     return ErrorType::UNKNOWN_IDENTIFIER;
 }
 
@@ -143,4 +183,24 @@ auto
 Environment::depth(
 ) -> int { 
     return m_recursion_depth;
+}
+
+// .....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....oooO0Oooo.....
+
+auto
+Environment::inspect(
+) const -> void {
+    print("Environment:", m_recursion_depth);
+    print("Variables");
+    if (m_values.size() > 0)
+        for (auto const& [key, value] : m_values)
+            print(key, value);
+
+    print("Functions");
+    if (m_functions.size() > 0)
+        for (auto const& [key, func] : m_functions)
+            print(key, func);
+
+    if (m_enclosing)
+        m_enclosing->inspect();
 }

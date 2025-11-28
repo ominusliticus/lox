@@ -3,8 +3,6 @@
 #include "internals/object.hpp"
 
 #include "internals/ast/environment.hpp"
-#include "internals/ast/expression.hpp"
-#include "internals/ast/statement.hpp"
 
 #include "internals/ast/walkers/interpreter.hpp"
 

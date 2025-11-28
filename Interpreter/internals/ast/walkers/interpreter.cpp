@@ -47,7 +47,13 @@ Interpreter::interpret(
     Assignment* expression
 ) -> ErrorOr<Object> {
     auto value = TRY(evaluate(expression->value.get()));
-    TRY(m_current_environment->assign(expression->name.lexeme, std::move(value)));
+
+    auto itr = m_locals.find(expression);
+    if (itr != m_locals.end())
+        TRY(m_current_environment->assign_at(itr->second, expression->name, std::move(value)));
+    else
+        TRY(m_global_environment->assign(expression->name.lexeme, std::move(value)));
+
     return value;
 }
 
@@ -207,7 +213,8 @@ auto
 Interpreter::interpret(
     Variable* expression
 ) -> ErrorOr<Object> {
-    return TRY(m_current_environment->get(expression->name));
+    // return TRY(m_current_environment->get(expression->name));
+    return TRY(lookup_variable(expression->name, expression));
 }
 
 // ....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....
@@ -226,11 +233,11 @@ auto
 Interpreter::interpret(
     Block* statements
 ) -> ErrorOr<void> {
-    std::unique_ptr<Environment> new_envirnoment = std::make_unique<Environment>(
+    std::unique_ptr<Environment> new_environment = std::make_unique<Environment>(
         m_current_environment,
         "BLOCK"
     );
-    TRY(execute_block(std::move(statements->statements), new_envirnoment.get()));
+    TRY(execute_block(std::move(statements->statements), new_environment.get()));
     return {};
 }
 
@@ -250,6 +257,7 @@ auto
 Interpreter::interpret(
     FunDeclStmt* statement
 ) -> ErrorOr<void> {
+    // TODO: Add anonymous functions (a.k.a. lambdas)
     std::unique_ptr<Function> function = std::make_unique<Function>(
         statement, m_current_environment
     );
@@ -341,13 +349,9 @@ Interpreter::execute_block(
 ) -> ErrorOr<void> {
     Environment* previous = m_current_environment;
     m_current_environment = environment;
-    // print(Color::YELLOW, previous->m_name, Color::DEFAULT);
-    // print(Color::BLUE, m_current_environment->m_name, Color::DEFAULT);
     for (auto const& statement : statements)
         TRY(statement->visit(this));
-    // print(Color::GREEN, m_current_environment->m_name, Color::DEFAULT);
     m_current_environment = previous;
-    // print(Color::RED, m_current_environment->m_name, Color::DEFAULT);
     return {};
 }
 
@@ -379,4 +383,30 @@ auto
 Interpreter::current_environment(
 ) ->Environment* {
     return m_current_environment;
+}
+
+// ....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....
+
+auto
+Interpreter::resolve(
+    Expression* expression,
+    int depth
+) -> void {
+    m_locals.insert({expression, depth});
+}
+// ....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....oooO0Oooo....
+
+auto
+Interpreter::lookup_variable(
+    Token const& name,
+    Expression* expression
+) -> ErrorOr<Object> {
+    auto itr_locals = m_locals.find(expression);
+    auto itr_globals = m_global_environment->values().find(name.lexeme);
+    if (itr_locals == m_locals.end() && itr_globals == m_global_environment->values().end())
+        return ErrorType::BAD_ENVIRONMENT;
+
+    if (itr_locals != m_locals.end()) 
+        return TRY(m_current_environment->get_at(itr_locals->second, name.lexeme));
+    return TRY(m_global_environment->get(name));
 }

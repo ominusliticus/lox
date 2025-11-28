@@ -20,8 +20,14 @@ auto
 AST::interpret(
     std::vector<std::unique_ptr<Statement>>&& statements
 ) -> ErrorOr<void> {
-    for (auto& statement : statements)
+    std::size_t n = 0;
+    ::print(statements.size());
+    for (auto& statement : statements) {
+        ::print(n++);
+        // TRY(statement->visit(m_printer.get()));
         TRY(m_interpreter->execute(statement.get()));
+    }
+    ::print("Made it out!");
     return {};
 }
 

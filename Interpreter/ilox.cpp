@@ -14,6 +14,7 @@
 #include "internals/token.hpp"
 
 #include "internals/ast/environment.hpp"
+#include "internals/ast/walkers/resolver.hpp"
 
 #include "util/error.hpp"
 #include "util/print.hpp"
@@ -34,6 +35,13 @@ run(
     std::vector<Token> tokens{ TRY(scanner.scan_tokens()) };
     Parser             parser(std::move(tokens));
     auto               statements{ TRY(parser.parse()) };
+
+    // Run resolver to generate variable environments
+    print("Right before resolver");
+    Resolver resolver(ast.get_interpreter());
+    print("Right after resolver");
+    TRY(resolver.interpret(statements));
+    print("Ran resolver");
     TRY(ast.interpret(std::move(statements)));
     // TRY(ast.print(std::move(statements)));
     return {};
@@ -51,6 +59,7 @@ run_file(
         file_stream.seekg(0);
         std::string source(size, '\0');
         file_stream.read(&source[0], size);
+        print("Passing to main `run` function");
         return run(source, filename);
     } else {
         return ErrorType::FILE_NOT_FOUND;
@@ -59,6 +68,7 @@ run_file(
 }
 
 // Runs lox interpreter on command line
+// TODO: Support multi-line input
 auto
 run_prompt(
 ) -> ErrorOr<void> { 

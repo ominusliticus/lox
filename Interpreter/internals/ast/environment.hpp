@@ -29,15 +29,20 @@ public:
     void define(std::string const& name, std::unique_ptr<Call> value);
 
     ErrorOr<void> assign(std::string const& name, Object&& value);
+    ErrorOr<void> assign_at(int distance, Token const& name, Object&& value);
+
+    ErrorOr<Environment*> ancestor(int distance) const;
     
     // Design decision here, lots of copying will happen whenever we get an Object, but that is 
     // better than proliferating the use of std::shared_ptr<Object> everywhere, it's unnecessary.
     // Performance optimization/profiling can be accomplished once everything is done
     //
-    // There is some thoght about lexically scope variables being kept around if used as 
+    // There is some thought about lexically scope variables being kept around if used as 
     // std::shared_ptr
     ErrorOr<Object> get(Token const& name) const;
     ErrorOr<Call*>  get_function(Token const& name) const;
+
+    ErrorOr<Object> get_at(int distance, std::string const& name) const;
 
     std::string check_names(Token const& name) const;
     Environment* enclosing();
@@ -45,12 +50,14 @@ public:
     std::size_t count();
     int depth();
 
+    void inspect() const;
+
     friend class Interpreter;
 
 private:
     Environment* m_enclosing = nullptr;
-    int m_recursion_depth = -1;
-    std::string m_name;
+    int          m_recursion_depth = -1;
+    std::string  m_name;
     VariableMap  m_values;
     FunctionMap  m_functions;
 };

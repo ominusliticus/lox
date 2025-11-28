@@ -40,6 +40,9 @@ enum class ErrorType {
     EXPECTED_FUNCTION_NAME,
     EXPECTED_PARAMETER_NAME,
     CALL_PROHIBITED,
+    BAD_ENVIRONMENT,
+    VARIABLE_ALREADY_EXISTS,
+    NO_RETURN_POSSIBLE,
     END_OF_ERRORS
 };
 
@@ -139,6 +142,15 @@ operator<<(
             break;
         case ErrorType::CALL_PROHIBITED:
             ostream << "Call from base Call object prohibited";
+            break;
+        case ErrorType::BAD_ENVIRONMENT:
+            ostream << "Could not read local variable in its own initializer";
+            break;
+        case ErrorType::VARIABLE_ALREADY_EXISTS:
+            ostream << "A variable with this name already exists in this scope";
+            break;
+        case ErrorType::NO_RETURN_POSSIBLE:
+            ostream << "Cannot return from the top-level code";
             break;
         case ErrorType::END_OF_ERRORS:
             break;

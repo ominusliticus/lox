@@ -1,13 +1,18 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 #include "internals/object.hpp"
+#include "internals/token.hpp" 
 #include "internals/ast/ast_forward.hpp"
 
 #include "util/error.hpp"
 
+// TODO: Make this an abstract interface and move AST execution details to a class that inherits
+// from this abstract interface called _Executor_. This is such that all overloaders have a uniform
+// interface
 class [[nodiscard]] Interpreter {
 public:
     Interpreter();
@@ -43,9 +48,14 @@ public:
     Environment* globals();
     Environment* current_environment();
 
+    void resolve(Expression* expression, int depth);
+
+    ErrorOr<Object> lookup_variable(Token const& name, Expression* expression);
+
 private:
-    std::unique_ptr<Environment> m_global_environment;
-    Environment*                 m_current_environment;
+    std::unique_ptr<Environment>         m_global_environment;
+    Environment*                         m_current_environment;
+    std::unordered_map<Expression*, int> m_locals;
 
     friend AST;
 };

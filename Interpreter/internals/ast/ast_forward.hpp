@@ -21,3 +21,4 @@ struct VarDeclStmt;
 struct WhileStmt;
 
 class AST;
+class Resolver;
